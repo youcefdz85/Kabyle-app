@@ -1,7 +1,9 @@
 # Awal: learn Kabyle
 
-A simple, phone-friendly app that helps the Kabyle diaspora learn the everyday
-Kabyle spoken at home, through short themed lessons, flashcards and quizzes.
+A phone-friendly app that helps the Kabyle diaspora learn the everyday Kabyle
+spoken at home. It works like Duolingo: a path of short levels with mixed
+exercises (new phrases, multiple choice, sentence building, matching pairs),
+plus XP and a daily streak.
 
 See [PLAN.md](PLAN.md) for the product plan and the build steps.
 
@@ -10,7 +12,10 @@ Open `index.html` in a browser. There are no build steps and nothing to install.
 
 ## Edit the content
 All phrases are in [`data/lessons.js`](data/lessons.js). Each phrase has
-`kab`, `en`, and optional `say` (pronunciation) and `note` (culture or usage).
+`id`, `kab`, `en`, and optional `say` (pronunciation) and `note` (culture or
+usage). Each lesson becomes a unit on the path. Its phrases are split
+automatically into levels of about 4, followed by a unit review. Exercises are
+generated from the phrases, so adding phrases is all it takes to add content.
 
 ## Add native-speaker audio
 Open `index.html#/record` to use the recording studio. Record each phrase,

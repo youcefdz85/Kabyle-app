@@ -35,7 +35,8 @@ product**.
 4. ✅ **Ship it:** GitHub Pages deploy on every push to `main`, installable
    PWA that works offline (audio is cached after first play). Custom domain
    still to do.
-5. **Keep them coming back:** daily streak and a "phrase of the day".
+5. **Keep them coming back:** ✅ Duolingo-style path, mixed exercises, XP,
+   daily streak. Still to do: daily reminders, a "phrase of the day".
 
 ## Out of scope for v1 (on purpose)
 Accounts, a backend, AI chat, Tifinagh script, grammar lessons, a native app
