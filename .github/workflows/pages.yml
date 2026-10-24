@@ -26,7 +26,7 @@ jobs:
       - name: Collect site files
         run: |
           mkdir _site
-          cp -r index.html app.js i18n.js sound.js art.js styles.css sw.js manifest.webmanifest data icons fonts audio _site/
+          cp -r index.html app.js i18n.js sound.js art.js pictures.js styles.css sw.js manifest.webmanifest data icons fonts audio _site/
           rm -f _site/audio/README.md _site/icons/logo-source.png
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

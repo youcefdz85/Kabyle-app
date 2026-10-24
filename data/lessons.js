@@ -5,6 +5,7 @@
 // Optional: say (English-style pronunciation hint, shown in English only),
 // note ({ en, fr, es, de }: usage / culture).
 // Lesson titles are { en, fr, es, de } too.
+// Picture cards are drawn in pictures.js, keyed by "<lessonId>-<phraseId>".
 // "free: true" lessons are available without unlocking (paywall comes in step 3).
 // Run `node tests/check-content.js` after editing to catch missing translations.
 // ⚠️ Please have a native speaker review every phrase before selling.
@@ -67,18 +68,17 @@ window.LESSONS = [
     phrases: [
       { id: "yemma", kab: "Yemma", say: "YEM-ma",
         en: "Mom / my mother", fr: "Maman / ma mère", es: "Mamá / mi madre", de: "Mama / meine Mutter" },
-      { id: "baba", kab: "Baba", say: "BA-ba",
+      { id: "vava", kab: "Vava", say: "VA-va",
         en: "Dad / my father", fr: "Papa / mon père", es: "Papá / mi padre", de: "Papa / mein Vater" },
       { id: "jeddi", kab: "Jeddi", say: "JED-dee",
         en: "Grandpa", fr: "Grand-père", es: "Abuelo", de: "Opa" },
-      { id: "nanna", kab: "Nanna", say: "NAN-na",
-        en: "Grandma (also: elder sister)", fr: "Grand-mère (aussi : grande sœur)",
-        es: "Abuela (también: hermana mayor)", de: "Oma (auch: ältere Schwester)",
+      { id: "setti", kab: "Setti / Jida", say: "SET-tee / JEE-da",
+        en: "Grandma", fr: "Grand-mère", es: "Abuela", de: "Oma",
         note: {
-          en: "Some families say 'Setti' or 'Jida' instead.",
-          fr: "Certaines familles disent plutôt « Setti » ou « Jida ».",
-          es: "Algunas familias dicen «Setti» o «Jida».",
-          de: "Manche Familien sagen stattdessen „Setti“ oder „Jida“."
+          en: "Both are used: say the one your family says.",
+          fr: "Les deux se disent : utilise celui de ta famille.",
+          es: "Se usan los dos: di el que se dice en tu familia.",
+          de: "Beides ist üblich – sag das, was deine Familie sagt."
         } },
       { id: "gma", kab: "Gma", say: "g-MA",
         en: "My brother", fr: "Mon frère", es: "Mi hermano", de: "Mein Bruder" },

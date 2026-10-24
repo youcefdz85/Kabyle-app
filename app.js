@@ -248,19 +248,28 @@
   const canBuild = p => words(p.kab).length >= 2 && !/[/…]/.test(p.kab);
 
   // n other phrases whose `key` text differs from the answer, preferring the same unit.
-  function distractors(answer, key, pool, n) {
+  function distractors(answer, key, pool, n, fallback = ALL_PHRASES) {
     const seen = new Set([answer[key]]);
     const out = [];
-    for (const p of shuffle(pool).concat(shuffle(ALL_PHRASES))) {
+    for (const p of shuffle(pool).concat(shuffle(fallback))) {
       if (out.length >= n) break;
       if (!seen.has(p[key])) { seen.add(p[key]); out.push(p); }
     }
     return out;
   }
 
+  // Picture cards come from pictures.js; a unit gets picture exercises when it has
+  // at least four pictures to choose between.
+  const picOf = p => window.Pictures.get(p.lesson.id, p.id);
+  const PICTURED = ALL_PHRASES.filter(picOf);
+
   function buildExercises(node) {
     const pool = UNITS[node.unit].phrases;
+    const pics = pool.filter(picOf);
+    const usePics = p => pics.length >= 4 && !!picOf(p);
     const choose = (p, type) => ({ type, p, options: shuffle([p, ...distractors(p, type === "kab2en" ? lang : "kab", pool, 3)]) });
+    // "pick": hear the Kabyle, tap the picture. "picname": see the picture, pick the Kabyle.
+    const choosePic = (p, type) => ({ type, p, options: shuffle([p, ...distractors(p, type === "pick" ? lang : "kab", pics, 3, PICTURED)]) });
     const build = p => {
       const answer = words(p.kab).map(tileText);
       const used = new Set(answer.map(norm));
@@ -269,16 +278,19 @@
         .slice(0, Math.max(2, 6 - answer.length));
       return { type: "build", p, bank: shuffle([...answer, ...extra]) };
     };
-    const practise = p => (canBuild(p) && Math.random() < 0.6 ? build(p) : choose(p, "en2kab"));
+    const practise = p => {
+      if (usePics(p) && Math.random() < 0.5) return choosePic(p, "picname");
+      return canBuild(p) && Math.random() < 0.6 ? build(p) : choose(p, "en2kab");
+    };
     const match = ps => ({ type: "match", pairs: shuffle(ps).slice(0, 5) });
 
     if (node.type === "learn") {
-      const steps = node.phrases.flatMap(p => [{ type: "intro", p }, choose(p, "kab2en")]);
+      const steps = node.phrases.flatMap(p => [{ type: "intro", p }, usePics(p) ? choosePic(p, "pick") : choose(p, "kab2en")]);
       if (node.phrases.length >= 3) steps.push(match(node.phrases));
       return steps.concat(shuffle(node.phrases.map(practise)));
     }
     const steps = shuffle(node.phrases).slice(0, 8)
-      .map(p => pick([() => choose(p, "kab2en"), () => choose(p, "en2kab"), () => practise(p)])());
+      .map(p => pick([() => (usePics(p) ? choosePic(p, "pick") : choose(p, "kab2en")), () => choose(p, "en2kab"), () => practise(p)])());
     steps.splice(4, 0, match(node.phrases));
     return steps;
   }
@@ -423,10 +435,17 @@
       h("div", { class: "bubble" }, ...content));
   }
 
-  function choices(labels, answer, api, { lang, onCheck } = {}) {
+  function picture(svgMarkup, cls = "pic") {
+    const el = h("div", { class: cls });
+    el.innerHTML = svgMarkup; // drawn by pictures.js, never user content
+    return el;
+  }
+
+  // Answer buttons; with `pics`, each is a picture card (2×2 grid) labelled underneath.
+  function choices(labels, answer, api, { lang, onCheck, pics } = {}) {
     let chosen = null;
     const buttons = labels.map((label, i) => h("button", {
-      class: "option", "data-key": i + 1, lang,
+      class: pics ? "option pic-card" : "option", "data-key": i + 1, lang,
       onclick: () => {
         Sound.play("tap");
         buttons.forEach(b => b.classList.remove("selected"));
@@ -439,8 +458,8 @@
           return { correct: chosen === answer, solution: answer };
         });
       }
-    }, h("span", { class: "key" }, i + 1), h("span", {}, label)));
-    return h("div", { class: "options" }, buttons);
+    }, h("span", { class: "key" }, i + 1), pics ? picture(pics[i]) : null, h("span", {}, label)));
+    return h("div", { class: pics ? "options pic-grid" : "options" }, buttons);
   }
 
   const EXERCISES = {
@@ -451,6 +470,7 @@
         // The respelling hints are written for English readers.
         guide(h("div", { class: "kab big", lang: "kab" }, p.kab), p.say && lang === "en" ? h("div", { class: "say" }, p.say) : null),
         player(p, { autoplay: true }).el,
+        picOf(p) ? picture(picOf(p), "pic intro-pic") : null,
         h("div", { class: "meaning" }, meaning(p)),
         p.note ? h("p", { class: "note" }, "💡 ", noteOf(p)) : null);
     },
@@ -461,6 +481,22 @@
         guide(h("div", { class: "kab", lang: "kab" }, ex.p.kab)),
         player(ex.p, { autoplay: true }).el,
         choices(ex.options.map(meaning), meaning(ex.p), api));
+    },
+
+    pick(ex, api) {
+      return h("div", { class: "exercise" },
+        h("h2", {}, t("selectImage")),
+        guide(h("div", { class: "kab", lang: "kab" }, ex.p.kab)),
+        player(ex.p, { autoplay: true }).el,
+        choices(ex.options.map(meaning), meaning(ex.p), api, { pics: ex.options.map(picOf) }));
+    },
+
+    picname(ex, api) {
+      const audio = player(ex.p);
+      return h("div", { class: "exercise" },
+        h("h2", {}, t("sayInKabyle")),
+        picture(picOf(ex.p), "pic prompt-pic"),
+        choices(ex.options.map(o => o.kab), ex.p.kab, api, { lang: "kab", onCheck: () => audio.play() }));
     },
 
     en2kab(ex, api) {
