@@ -51,7 +51,7 @@ window.Pictures = (function () {
 
   const PEOPLE = {
     // Grandma: fringed headscarf, Kabyle dress with ribbon bands, silver brooch.
-    "family-nanna": person({
+    "family-setti": person({
       skin: "#d9a07a", top: "#f2c230", wrinkles: true,
       bands: [[104, 108, "#d23c3c"], [108, 111, "#2e8b57"]], zigzags: [[115, "#2b1a10"]],
       front: `<path d="M41 50 q-1 5 1 9 M79 50 q1 5 -1 9" stroke="#ece8e0" stroke-width="2.5" fill="none" stroke-linecap="round"/>` + headscarf("#d23c3c", "#f2c230"),
@@ -74,7 +74,7 @@ window.Pictures = (function () {
       front: headscarf("#1f8a7e", "#fdfaf2") + `<circle cx="47" cy="36" r="2" fill="#f2c230"/><circle cx="73" cy="36" r="2" fill="#f2c230"/><circle cx="60" cy="33" r="2" fill="#f2c230"/>`
     }),
     // Dad: greying hair, moustache, shirt.
-    "family-baba": person({
+    "family-vava": person({
       skin: "#d39a70", top: "#2a6f8f", ears: true,
       collar: `<path d="M50 86 L60 98 L70 86 Z" fill="#fdfaf2"/>`,
       front: shortHair("#3b2a20") + `<path d="M38 56 q1 -6 4 -9 l2 8 Z M82 56 q-1 -6 -4 -9 l-2 8 Z" fill="#a69a92"/>
