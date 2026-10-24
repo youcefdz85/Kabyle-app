@@ -32,8 +32,9 @@ product**.
    recording studio (`#/record`) so a native speaker can record from a phone.
 3. **Paywall:** lock lessons 2+ and add an "Unlock" button that goes to a Stripe
    Payment Link, which returns with an unlock code.
-4. **Ship it:** deploy free on GitHub Pages / Netlify, make it an installable
-   PWA (works offline), and add a custom domain.
+4. ✅ **Ship it:** GitHub Pages deploy on every push to `main`, installable
+   PWA that works offline (audio is cached after first play). Custom domain
+   still to do.
 5. **Keep them coming back:** daily streak and a "phrase of the day".
 
 ## Out of scope for v1 (on purpose)

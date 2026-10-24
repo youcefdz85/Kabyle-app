@@ -111,8 +111,38 @@
     });
     screen("Awal", false,
       h("p", { class: "intro" }, "Azul! Learn the Kabyle you hear at home, one phrase at a time."),
-      ...items
+      ...items,
+      installHint()
     );
+  }
+
+  // ---------- install on phone ----------
+  // Android/desktop Chrome offer an install prompt; iPhone needs Share → Add to Home Screen.
+  let installPrompt = null;
+  window.addEventListener("beforeinstallprompt", e => {
+    e.preventDefault();
+    installPrompt = e;
+    if (!location.hash || location.hash === "#/") renderHome();
+  });
+  function installHint() {
+    const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+    if (standalone) return null;
+    if (installPrompt) {
+      return h("button", { class: "btn install", onclick: async () => {
+        installPrompt.prompt();
+        await installPrompt.userChoice;
+        installPrompt = null;
+        renderHome();
+      } }, "📲 Install Awal on this device");
+    }
+    if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
+      return h("p", { class: "install-tip" }, "📲 To install: tap Share, then “Add to Home Screen”.");
+    }
+    return null;
+  }
+
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+    navigator.serviceWorker.register("sw.js").catch(() => { /* app still works online */ });
   }
 
   // ---------- flashcards ----------

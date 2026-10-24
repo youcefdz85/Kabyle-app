@@ -117,3 +117,6 @@ main { max-width: 520px; margin: 0 auto; padding: 16px; }
 .mono { font-family: ui-monospace, monospace; }
 .btn.recording { background: var(--bad); }
 .btn.save { text-align: center; text-decoration: none; }
+
+.btn.install { width: 100%; margin-top: 8px; }
+.install-tip { color: var(--muted); text-align: center; font-size: 0.9rem; margin-top: 16px; }

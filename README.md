@@ -22,3 +22,12 @@ The recording studio needs microphone access, so open it from a web address
 (`https://` or `localhost`), not by double-clicking the file. For example, run
 `python3 -m http.server` in this folder and visit
 `http://localhost:8000/#/record`.
+
+## Put it online (GitHub Pages)
+Every push to `main` deploys the app to
+**https://youcefdz85.github.io/Kabyle-app/** (see `.github/workflows/pages.yml`).
+Before the first deploy, do this once: in the repo, go to **Settings → Pages →
+Build and deployment → Source** and choose **GitHub Actions**.
+
+Once it's online, the app can be installed on a phone like a normal app and
+works offline.
