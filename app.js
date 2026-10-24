@@ -40,6 +40,36 @@
     return el;
   }
 
+  // ---------- language ----------
+  // The language the app is taught in (Kabyle is always the language being learned).
+  const LANGS = Object.keys(window.I18N);
+  const LANG_KEY = "awal.lang";
+  function savedLang() {
+    try { const l = localStorage.getItem(LANG_KEY); return LANGS.includes(l) ? l : null; }
+    catch { return null; }
+  }
+  function detectLang() {
+    for (const l of navigator.languages || [navigator.language || "en"]) {
+      const code = l.slice(0, 2).toLowerCase();
+      if (LANGS.includes(code)) return code;
+    }
+    return "en";
+  }
+  let lang = savedLang() || detectLang();
+  document.documentElement.lang = lang;
+  function setLang(l) {
+    lang = l;
+    document.documentElement.lang = l;
+    try { localStorage.setItem(LANG_KEY, l); } catch { /* private mode */ }
+  }
+  function t(key, vars = {}) {
+    const s = window.I18N[lang][key] ?? window.I18N.en[key];
+    return typeof s === "string" ? s.replace(/\{(\w+)\}/g, (_, k) => vars[k]) : s;
+  }
+  const meaning = p => p[lang] || p.en;
+  const noteOf = p => p.note && (p.note[lang] || p.note.en);
+  const titleOf = lesson => lesson.title[lang] || lesson.title.en;
+
   function shuffle(arr) {
     const a = arr.slice();
     for (let i = a.length - 1; i > 0; i--) {
@@ -74,9 +104,9 @@
     const levels = splitEvenly(phrases, Math.ceil(phrases.length / 4));
     const nodes = levels.map((ps, i) => ({
       id: `${lesson.id}-${i + 1}`, type: "learn", phrases: ps, lesson, unit: index,
-      label: `Level ${i + 1} of ${levels.length}`
+      level: i + 1, levels: levels.length
     }));
-    nodes.push({ id: `${lesson.id}-review`, type: "review", phrases, lesson, unit: index, label: "Unit review" });
+    nodes.push({ id: `${lesson.id}-review`, type: "review", phrases, lesson, unit: index });
     return { lesson, index, nodes, phrases };
   });
   const NODES = UNITS.flatMap(u => u.nodes);
@@ -88,6 +118,9 @@
     return i === 0 || state.done[NODES[i - 1].id] ? "current" : "locked";
   }
   function xpFor(node) { return node.type === "review" ? 15 : 10; }
+  function nodeLabel(node) {
+    return node.type === "review" ? t("unitReview") : t("level", { i: node.level, n: node.levels });
+  }
 
   // ---------- audio ----------
   // Recordings live at audio/<lessonId>-<phraseId>.<ext>. The browser picks
@@ -116,14 +149,14 @@
       audio.play().catch(() => {});
     }
     const el = h("div", { class: "audio pending" },
-      h("button", { class: "play", "aria-label": "Play", onclick: e => { e.stopPropagation(); play(1); } }, "🔊"),
-      h("button", { class: "play slow", "aria-label": "Play slowly", onclick: e => { e.stopPropagation(); play(0.7); } }, "🐢"),
+      h("button", { class: "play", "aria-label": t("play"), onclick: e => { e.stopPropagation(); play(1); } }, "🔊"),
+      h("button", { class: "play slow", "aria-label": t("playSlow"), onclick: e => { e.stopPropagation(); play(0.7); } }, "🐢"),
       audio);
     audio.addEventListener("loadedmetadata", () => el.classList.remove("pending"));
     // If no source loads, there's no recording yet.
     audio.lastElementChild.addEventListener("error", () => {
       missing = true;
-      el.replaceChildren(showMissing ? h("span", { class: "no-audio" }, "No recording yet") : "");
+      el.replaceChildren(showMissing ? h("span", { class: "no-audio" }, t("noRecording")) : "");
       el.classList.remove("pending");
     });
     if (autoplay) audio.addEventListener("canplaythrough", () => { if (el.isConnected) play(1); }, { once: true });
@@ -165,14 +198,15 @@
     const top = h("header", { class: "stats" },
       h("img", { class: "logo", src: "icons/logo-96.png", alt: "Awal", width: 36, height: 36 }),
       h("div", { class: "spacer" }),
-      h("div", { class: `stat streak${practisedToday(state) ? "" : " off"}`, title: "Day streak" }, "🔥 ", currentStreak(state)),
-      h("div", { class: "stat xp", title: "Total XP" }, "⚡ ", state.xp));
+      h("button", { class: "lang-btn", "aria-label": t("language"), onclick: toggleLangMenu }, t("flag")),
+      h("div", { class: `stat streak${practisedToday(state) ? "" : " off"}`, title: t("dayStreak") }, "🔥 ", currentStreak(state)),
+      h("div", { class: "stat xp", title: t("totalXp") }, "⚡ ", state.xp));
 
     const units = UNITS.map(unit => h("section", { class: `unit u${unit.index % 4}` },
       h("div", { class: "unit-banner" },
         h("div", {},
-          h("div", { class: "unit-num" }, `Unit ${unit.index + 1}`),
-          h("div", { class: "unit-title" }, unit.lesson.title)),
+          h("div", { class: "unit-num" }, t("unit", { n: unit.index + 1 })),
+          h("div", { class: "unit-title" }, titleOf(unit.lesson))),
         h("div", { class: "unit-emoji" }, unit.lesson.emoji)),
       h("div", { class: "path" }, unit.nodes.map((node, i) => nodeEl(node, i, state)))));
 
@@ -185,10 +219,10 @@
     const status = nodeStatus(node, state);
     const icon = node.type === "review" ? "🏆" : status === "done" ? "✓" : status === "locked" ? "🔒" : "★";
     const wrap = h("div", { class: `node-wrap ${status}`, style: `--x:${OFFSETS[i % OFFSETS.length]}px` },
-      status === "current" ? h("div", { class: "start-bubble" }, "Start") : null,
+      status === "current" ? h("div", { class: "start-bubble" }, t("start")) : null,
       h("button", {
         class: `node ${status} ${node.type}`,
-        "aria-label": `${node.lesson.title}: ${node.label}`,
+        "aria-label": `${titleOf(node.lesson)}: ${nodeLabel(node)}`,
         onclick: () => togglePopover(wrap, node, status)
       }, icon));
     return wrap;
@@ -205,17 +239,17 @@
     wrap.classList.add("open");
     const n = node.phrases.length;
     const text = status === "locked"
-      ? "Complete the levels above to unlock this."
+      ? t("lockedText")
       : node.type === "review"
-        ? `Show you know all ${n} phrases in ${node.lesson.title}.`
-        : `${n} new phrases: ${node.phrases.slice(0, 2).map(p => p.kab).join(", ")}…`;
+        ? t("reviewText", { n, title: titleOf(node.lesson) })
+        : t("learnText", { n, examples: node.phrases.slice(0, 2).map(p => p.kab).join(", ") });
     wrap.append(h("div", { class: `popover ${status}` },
-      h("div", { class: "pop-title" }, node.label),
+      h("div", { class: "pop-title" }, nodeLabel(node)),
       h("p", {}, text),
       status === "locked"
-        ? h("button", { class: "btn", disabled: "" }, "Locked")
+        ? h("button", { class: "btn", disabled: "" }, t("locked"))
         : h("button", { class: "btn", onclick: () => go(`lesson/${node.id}`) },
-            status === "done" ? "Practise +5 XP" : `Start +${xpFor(node)} XP`)));
+            status === "done" ? t("practiseXp") : t("startXp", { xp: xpFor(node) }))));
   }
 
   // ---------- building a lesson ----------
@@ -237,7 +271,7 @@
 
   function buildExercises(node) {
     const pool = UNITS[node.unit].phrases;
-    const choose = (p, type) => ({ type, p, options: shuffle([p, ...distractors(p, type === "kab2en" ? "en" : "kab", pool, 3)]) });
+    const choose = (p, type) => ({ type, p, options: shuffle([p, ...distractors(p, type === "kab2en" ? lang : "kab", pool, 3)]) });
     const build = p => {
       const answer = words(p.kab).map(tileText);
       const used = new Set(answer.map(norm));
@@ -261,8 +295,6 @@
   }
 
   // ---------- running a lesson ----------
-  const PRAISE = ["Ayyuz!", "Amazing!", "Great job!", "Nice!", "Excellent!", "Perfect!"];
-
   function renderSession(node) {
     const replay = !!loadState().done[node.id];
     const queue = buildExercises(node);
@@ -275,8 +307,8 @@
     const footer = h("footer", { class: "footer" });
     screen(
       h("header", { class: "session-top" },
-        h("button", { class: "icon-btn", "aria-label": "Quit lesson", onclick: () => {
-          if (confirm("Quit this lesson? Your progress in it will be lost.")) go("");
+        h("button", { class: "icon-btn", "aria-label": t("quitLesson"), onclick: () => {
+          if (confirm(t("quitConfirm"))) go("");
         } }, "✕"),
         h("div", { class: "progress-bar" }, bar)),
       stage, footer);
@@ -289,7 +321,7 @@
 
       let check = null; // set by the exercise once an answer is ready
       const msg = h("div", { class: "feedback" });
-      const btn = h("button", { class: "btn", disabled: "" }, "Check");
+      const btn = h("button", { class: "btn", disabled: "" }, t("check"));
       footer.className = "footer";
       footer.replaceChildren(h("div", { class: "footer-inner" }, msg, btn));
 
@@ -298,9 +330,9 @@
         (correct ? sfx.right : sfx.wrong)();
         stage.firstChild.classList.add("answered");
         footer.classList.add(correct ? "right" : "wrong");
-        msg.replaceChildren(h("div", { class: "fb-title" }, correct ? pick(PRAISE) : "Correct answer:"));
+        msg.replaceChildren(h("div", { class: "fb-title" }, correct ? pick(t("praise")) : t("correctAnswer")));
         if (!correct) msg.append(h("div", { class: "fb-solution", lang: "kab" }, solution));
-        btn.textContent = correct ? "Continue" : "Got it";
+        btn.textContent = correct ? t("continue") : t("gotIt");
         btn.disabled = false;
         btn.onclick = () => {
           if (correct) doneCount++;
@@ -314,7 +346,7 @@
       };
       btn.onclick = () => { if (check) { const r = check(); resolve(r.correct, r.solution); } };
       if (ex.type === "intro") {
-        btn.textContent = "Continue";
+        btn.textContent = t("continue");
         btn.disabled = false;
         btn.onclick = () => { doneCount++; next(); };
       }
@@ -338,14 +370,14 @@
       screen(
         h("main", { class: "stage done-screen" },
           h("div", { class: "celebrate" }, node.type === "review" ? "🏆" : "🎉"),
-          h("h1", {}, accuracy === 100 ? "Perfect lesson!" : "Lesson complete!"),
-          h("p", { class: "muted" }, replay ? "Practice makes perfect." : `${node.lesson.title} · ${node.label}`),
+          h("h1", {}, accuracy === 100 ? t("perfectLesson") : t("lessonComplete")),
+          h("p", { class: "muted" }, replay ? t("practiceMakesPerfect") : `${titleOf(node.lesson)} · ${nodeLabel(node)}`),
           h("div", { class: "stat-cards" },
-            stat("gold", "Total XP", `⚡ ${xp}`),
-            stat("ok", "Accuracy", `🎯 ${accuracy}%`),
-            stat("teal", "Time", `⏱ ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}`))),
+            stat("gold", t("totalXp"), `⚡ ${xp}`),
+            stat("ok", t("accuracy"), `🎯 ${accuracy}%`),
+            stat("teal", t("time"), `⏱ ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}`))),
         h("footer", { class: "footer" }, h("div", { class: "footer-inner" }, h("div"),
-          h("button", { class: "btn", onclick: () => (newDay ? renderStreak(state.streak.count) : go("")) }, "Continue"))));
+          h("button", { class: "btn", onclick: () => (newDay ? renderStreak(state.streak.count) : go("")) }, t("continue")))));
     }
 
     next();
@@ -357,12 +389,10 @@
       h("main", { class: "stage done-screen" },
         h("div", { class: "celebrate flame" }, "🔥"),
         h("div", { class: "streak-num" }, count),
-        h("h1", {}, "day streak!"),
-        h("p", { class: "muted" }, count === 1
-          ? "You started a streak! Come back tomorrow to keep it going."
-          : "Keep practising every day — your family will hear the difference.")),
+        h("h1", {}, count === 1 ? t("dayStreakOne") : t("dayStreakTitle")),
+        h("p", { class: "muted" }, count === 1 ? t("streakStarted") : t("streakKeep"))),
       h("footer", { class: "footer" }, h("div", { class: "footer-inner" }, h("div"),
-        h("button", { class: "btn", onclick: () => go("") }, "Continue"))));
+        h("button", { class: "btn", onclick: () => go("") }, t("continue")))));
   }
 
   // ---------- exercise types ----------
@@ -397,26 +427,27 @@
     intro(ex) {
       const p = ex.p;
       return h("div", { class: "exercise" },
-        h("div", { class: "ex-tag" }, "✨ New phrase"),
-        guide(h("div", { class: "kab big", lang: "kab" }, p.kab), p.say ? h("div", { class: "say" }, p.say) : null),
+        h("div", { class: "ex-tag" }, t("newPhrase")),
+        // The respelling hints are written for English readers.
+        guide(h("div", { class: "kab big", lang: "kab" }, p.kab), p.say && lang === "en" ? h("div", { class: "say" }, p.say) : null),
         player(p, { autoplay: true }).el,
-        h("div", { class: "meaning" }, p.en),
-        p.note ? h("p", { class: "note" }, "💡 ", p.note) : null);
+        h("div", { class: "meaning" }, meaning(p)),
+        p.note ? h("p", { class: "note" }, "💡 ", noteOf(p)) : null);
     },
 
     kab2en(ex, api) {
       return h("div", { class: "exercise" },
-        h("h2", {}, "What does this mean?"),
+        h("h2", {}, t("whatMeans")),
         guide(h("div", { class: "kab", lang: "kab" }, ex.p.kab)),
         player(ex.p, { autoplay: true }).el,
-        choices(ex.options.map(o => o.en), ex.p.en, api));
+        choices(ex.options.map(meaning), meaning(ex.p), api));
     },
 
     en2kab(ex, api) {
       const audio = player(ex.p);
       return h("div", { class: "exercise" },
-        h("h2", {}, "How do you say this?"),
-        guide(ex.p.en),
+        h("h2", {}, t("howSay")),
+        guide(meaning(ex.p)),
         choices(ex.options.map(o => o.kab), ex.p.kab, api, { lang: "kab", onCheck: () => audio.play() }));
     },
 
@@ -446,8 +477,8 @@
         return { correct: norm(said) === norm(ex.p.kab), solution: ex.p.kab };
       }
       return h("div", { class: "exercise" },
-        h("h2", {}, "Translate this sentence"),
-        guide(ex.p.en),
+        h("h2", {}, t("translate")),
+        guide(meaning(ex.p)),
         line,
         h("div", { class: "bank" }, bank));
     },
@@ -456,7 +487,7 @@
       let selected = null, left = ex.pairs.length, mistakes = 0;
       function tile(p, side) {
         const el = h("button", { class: "tile pair", lang: side === "kab" ? "kab" : null, onclick: () => tap(el, p, side) },
-          side === "kab" ? p.kab : p.en);
+          side === "kab" ? p.kab : meaning(p));
         return el;
       }
       function tap(el, p, side) {
@@ -485,7 +516,7 @@
         }
       }
       return h("div", { class: "exercise" },
-        h("h2", {}, "Tap the matching pairs"),
+        h("h2", {}, t("matchPairs")),
         h("div", { class: "match" },
           h("div", { class: "col" }, shuffle(ex.pairs).map(p => tile(p, "kab"))),
           h("div", { class: "col" }, shuffle(ex.pairs).map(p => tile(p, "en")))));
@@ -509,10 +540,10 @@
         await installPrompt.userChoice;
         installPrompt = null;
         renderHome();
-      } }, "📲 Install Awal on this device");
+      } }, t("install"));
     }
     if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
-      return h("p", { class: "install-tip" }, "📲 To install: tap Share, then “Add to Home Screen”.");
+      return h("p", { class: "install-tip" }, t("installIos"));
     }
     return null;
   }
@@ -526,13 +557,13 @@
   // Files are named so they can be dropped straight into the audio/ folder.
   function renderRecorder() {
     const top = h("header", { class: "topbar" },
-      h("button", { class: "icon-btn", "aria-label": "Back", onclick: () => go("") }, "←"),
+      h("button", { class: "icon-btn", "aria-label": t("back"), onclick: () => go("") }, "←"),
       h("img", { class: "logo", src: "icons/logo-96.png", alt: "", width: 32, height: 32 }),
-      h("h1", {}, "Recording studio"));
+      h("h1", {}, t("studioTitle")));
     const supported = window.MediaRecorder && navigator.mediaDevices;
     if (!supported) {
       return screen(top, h("main", { class: "page" },
-        h("p", { class: "muted" }, "This browser can't record audio. Try Chrome, Safari or Firefox on a phone or computer.")));
+        h("p", { class: "muted" }, t("studioUnsupported"))));
     }
     const format = [["audio/mp4", "m4a"], ["audio/webm;codecs=opus", "webm"], ["audio/ogg;codecs=opus", "ogg"]]
       .find(([mime]) => MediaRecorder.isTypeSupported(mime));
@@ -547,11 +578,11 @@
     function row(phrase) {
       const name = audioName(phrase);
       const status = h("div", { class: "rec-status" });
-      const recBtn = h("button", { class: "btn", onclick: toggle }, "● Record");
+      const recBtn = h("button", { class: "btn", onclick: toggle }, t("record"));
       const el = h("div", { class: "rec-row" },
         h("div", { class: "rec-text" },
           h("div", { class: "rec-kab", lang: "kab" }, phrase.kab),
-          h("div", { class: "meta" }, phrase.en),
+          h("div", { class: "meta" }, meaning(phrase)),
           h("div", { class: "meta mono" }, `${name}.${format ? format[1] : "?"}`)),
         player(phrase, { showMissing: true }).el,
         recBtn,
@@ -562,38 +593,62 @@
         if (active) active.recorder.stop();
         let s;
         try { s = await getStream(); }
-        catch { status.textContent = "Microphone permission was refused."; return; }
+        catch { status.textContent = t("micRefused"); return; }
         const chunks = [];
         const recorder = new MediaRecorder(s, format ? { mimeType: format[0] } : undefined);
         recorder.ondataavailable = e => chunks.push(e.data);
         recorder.onstop = () => {
           active = null;
-          recBtn.textContent = "● Record again";
+          recBtn.textContent = t("recordAgain");
           recBtn.classList.remove("recording");
           const blob = new Blob(chunks, { type: recorder.mimeType });
           const ext = format ? format[1] : "webm";
           const url = URL.createObjectURL(blob);
           status.replaceChildren(
             h("audio", { controls: "", src: url }),
-            h("a", { class: "btn secondary save", href: url, download: `${name}.${ext}` }, "⬇ Save file"));
+            h("a", { class: "btn secondary save", href: url, download: `${name}.${ext}` }, t("saveFile")));
         };
         recorder.start();
         active = { recorder, row: el };
-        recBtn.textContent = "■ Stop";
+        recBtn.textContent = t("stop");
         recBtn.classList.add("recording");
-        status.textContent = "Recording… say the phrase clearly, then press Stop.";
+        status.textContent = t("recording");
       }
       return el;
     }
 
     screen(top, h("main", { class: "page" },
-      h("p", { class: "muted" },
-        "Record each phrase in a quiet room. Press Record, say it once at a natural pace, press Stop, listen, then Save. ",
-        "Put the saved files in the app's audio/ folder."),
+      h("p", { class: "muted" }, t("studioIntro")),
       ...UNITS.flatMap(unit => [
-        h("h2", { class: "rec-lesson" }, `${unit.lesson.emoji} ${unit.lesson.title}`),
+        h("h2", { class: "rec-lesson" }, `${unit.lesson.emoji} ${titleOf(unit.lesson)}`),
         ...unit.phrases.map(row)
       ])));
+  }
+
+  // ---------- choosing a language ----------
+  // First visit: pick the language you'll learn in (your browser's language is listed first).
+  function renderWelcome() {
+    const order = [lang, ...LANGS.filter(l => l !== lang)];
+    screen(h("main", { class: "stage welcome" },
+      h("img", { class: "welcome-logo", src: "icons/logo-192.png", alt: "Awal", width: 120, height: 120 }),
+      h("h1", {}, "Azul!"),
+      h("p", { class: "welcome-title" }, t("welcomeTitle")),
+      h("p", { class: "muted" }, t("welcomeText")),
+      h("h2", {}, t("iSpeak")),
+      h("div", { class: "options" }, order.map(l => h("button", {
+        class: "option", lang: l, onclick: () => { setLang(l); route(); }
+      }, h("span", { class: "flag" }, window.I18N[l].flag), h("span", {}, window.I18N[l].languageName))))));
+  }
+
+  function closeLangMenu() { document.querySelector(".lang-menu")?.remove(); }
+  function toggleLangMenu(e) {
+    e.stopPropagation();
+    if (document.querySelector(".lang-menu")) return closeLangMenu();
+    e.currentTarget.parentElement.append(h("div", { class: "lang-menu", role: "menu" },
+      LANGS.map(l => h("button", {
+        class: `lang-item${l === lang ? " active" : ""}`, role: "menuitem", lang: l,
+        onclick: () => { setLang(l); route(); }
+      }, h("span", { class: "flag" }, window.I18N[l].flag), window.I18N[l].languageName))));
   }
 
   // ---------- routing (#/lesson/greetings-1, #/record) ----------
@@ -601,7 +656,8 @@
   function route() {
     const [view, id] = location.hash.replace(/^#\/?/, "").split("/");
     const node = view === "lesson" && NODES.find(n => n.id === id);
-    if (node && nodeStatus(node, loadState()) !== "locked") renderSession(node);
+    if (!savedLang() && view !== "record") renderWelcome();
+    else if (node && nodeStatus(node, loadState()) !== "locked") renderSession(node);
     else if (view === "record") renderRecorder();
     else renderHome();
   }
@@ -616,6 +672,7 @@
   // Tapping outside a level closes its popover.
   document.addEventListener("click", e => {
     if (!e.target.closest(".node-wrap")) closePopover();
+    if (!e.target.closest(".lang-menu")) closeLangMenu();
   });
   window.addEventListener("hashchange", route);
   route();
