@@ -1,9 +1,9 @@
 // Offline support.
 // - App files: network first (so content updates show up right away), cache as fallback.
 // - Audio: cache first; each recording is saved the first time it's played.
-const CACHE = "awal-v4";
+const CACHE = "awal-v5";
 const SHELL = [
-  "./", "index.html", "app.js", "i18n.js", "styles.css", "data/lessons.js",
+  "./", "index.html", "app.js", "i18n.js", "sound.js", "art.js", "styles.css", "data/lessons.js",
   "manifest.webmanifest", "icons/logo-32.png", "icons/logo-96.png", "icons/logo-192.png", "icons/app-192.png",
   "fonts/nunito-latin.woff2", "fonts/nunito-latin-ext.woff2"
 ];
