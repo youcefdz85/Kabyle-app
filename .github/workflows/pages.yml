@@ -27,7 +27,7 @@ jobs:
         run: |
           mkdir _site
           cp -r index.html app.js styles.css sw.js manifest.webmanifest data icons audio _site/
-          rm -f _site/audio/README.md
+          rm -f _site/audio/README.md _site/icons/logo-source.png
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

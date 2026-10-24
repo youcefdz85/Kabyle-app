@@ -1,10 +1,10 @@
 // Offline support.
 // - App files: network first (so content updates show up right away), cache as fallback.
 // - Audio: cache first; each recording is saved the first time it's played.
-const CACHE = "awal-v1";
+const CACHE = "awal-v2";
 const SHELL = [
   "./", "index.html", "app.js", "styles.css", "data/lessons.js",
-  "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png", "icons/icon-512.png"
+  "manifest.webmanifest", "icons/logo-32.png", "icons/logo-96.png", "icons/app-192.png"
 ];
 
 self.addEventListener("install", event => {

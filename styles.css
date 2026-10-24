@@ -1,22 +1,30 @@
+/* Palette taken from the Awal logo (icons/logo-source.png):
+   teal sky, gold yaz, navy night, warm sunset cream. */
 :root {
-  --bg: #f7f4ee;
-  --card: #ffffff;
-  --ink: #1d2320;
-  --muted: #66706b;
-  --brand: #1f6f5c;
-  --brand-soft: #dcebe6;
-  --accent: #e0a526;
+  --bg: #f6f1e4;
+  --card: #fffdf8;
+  --ink: #10202b;
+  --muted: #5e6c70;
+  --brand: #02786f;      /* buttons */
+  --brand-soft: #dcefe9;
+  --kab: #014e52;        /* Kabyle text */
+  --gold: #e9b949;
+  --gold-light: #fed878;
+  --line: rgb(233 185 73 / 0.35);
+  --header: linear-gradient(135deg, #014e52, #02786f);
   --bad: #c2453b;
   --radius: 16px;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #121614;
-    --card: #1c2220;
-    --ink: #edf1ef;
-    --muted: #9aa5a0;
-    --brand: #4cb397;
-    --brand-soft: #22342e;
+    --bg: #0e1b24;
+    --card: #16262f;
+    --ink: #f3ecd8;
+    --muted: #9fb0b2;
+    --brand: #037e72;
+    --brand-soft: #1d3a3b;
+    --kab: #fed878;
+    --header: linear-gradient(135deg, #0b1922, #014e52);
   }
 }
 
@@ -31,10 +39,12 @@ body {
 .topbar {
   display: flex; align-items: center; gap: 8px;
   padding: 14px 16px;
-  background: var(--brand); color: #fff;
-  position: sticky; top: 0;
+  background: var(--header); color: #fff;
+  border-bottom: 2px solid var(--gold);
+  position: sticky; top: 0; z-index: 1;
 }
-.topbar h1 { font-size: 1.2rem; margin: 0; }
+.topbar .logo { width: 32px; height: 32px; }
+.topbar h1 { font-size: 1.2rem; margin: 0; color: var(--gold-light); letter-spacing: 0.02em; }
 .icon-btn {
   background: none; border: 0; color: inherit;
   font-size: 1.4rem; cursor: pointer; padding: 0 6px;
@@ -50,6 +60,7 @@ main { max-width: 520px; margin: 0 auto; padding: 16px; }
   background: var(--card); color: var(--ink);
   border: 0; border-radius: var(--radius);
   padding: 16px; margin-bottom: 12px;
+  border: 1px solid var(--line);
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
   cursor: pointer; font: inherit;
 }
@@ -57,17 +68,18 @@ main { max-width: 520px; margin: 0 auto; padding: 16px; }
 .lesson .name { font-weight: 600; }
 .lesson .meta { color: var(--muted); font-size: 0.85rem; }
 .bar { height: 6px; background: var(--brand-soft); border-radius: 3px; margin-top: 6px; overflow: hidden; }
-.bar > span { display: block; height: 100%; background: var(--brand); }
-.tag { margin-left: auto; font-size: 0.75rem; background: var(--accent); color: #000; padding: 2px 8px; border-radius: 99px; }
+.bar > span { display: block; height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-light)); }
+.tag { margin-left: auto; font-size: 0.75rem; background: var(--gold); color: #10202b; padding: 2px 8px; border-radius: 99px; }
 
 .card {
   background: var(--card); border-radius: var(--radius);
   padding: 32px 20px; text-align: center; min-height: 260px;
+  border: 1px solid var(--line);
   box-shadow: 0 2px 8px rgb(0 0 0 / 0.08);
   display: flex; flex-direction: column; justify-content: center; gap: 10px;
   cursor: pointer;
 }
-.card .kab { font-size: 2rem; font-weight: 700; color: var(--brand); }
+.card .kab { font-size: 2rem; font-weight: 700; color: var(--kab); }
 .card .say { color: var(--muted); font-style: italic; }
 .card .en { font-size: 1.3rem; }
 .card .note { color: var(--muted); font-size: 0.9rem; }
@@ -88,9 +100,9 @@ main { max-width: 520px; margin: 0 auto; padding: 16px; }
   border-radius: 12px; border: 2px solid var(--brand-soft);
   background: var(--card); color: var(--ink); font: inherit; text-align: left; cursor: pointer;
 }
-.choice.right { border-color: var(--brand); background: var(--brand-soft); }
+.choice.right { border-color: var(--gold); background: var(--brand-soft); }
 .choice.wrong { border-color: var(--bad); }
-.question { font-size: 1.6rem; font-weight: 700; color: var(--brand); text-align: center; margin: 12px 0 20px; }
+.question { font-size: 1.6rem; font-weight: 700; color: var(--kab); text-align: center; margin: 12px 0 20px; }
 
 .result { text-align: center; padding: 24px 0; }
 .result .big { font-size: 3rem; }
@@ -111,7 +123,7 @@ main { max-width: 520px; margin: 0 auto; padding: 16px; }
 }
 .rec-row .audio { justify-content: flex-start; }
 .rec-row .actions { margin-top: 0; }
-.rec-kab { font-weight: 700; font-size: 1.2rem; color: var(--brand); }
+.rec-kab { font-weight: 700; font-size: 1.2rem; color: var(--kab); }
 .rec-status { color: var(--muted); font-size: 0.9rem; display: flex; flex-direction: column; gap: 8px; }
 .rec-status audio { width: 100%; }
 .mono { font-family: ui-monospace, monospace; }

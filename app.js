@@ -88,7 +88,7 @@
     stopAudio();
     titleEl.textContent = title;
     backBtn.hidden = !showBack;
-    app.replaceChildren(...content);
+    app.replaceChildren(...content.filter(c => c != null));
     window.scrollTo(0, 0);
   }
 
