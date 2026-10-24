@@ -28,8 +28,8 @@ product**.
 ## Build steps
 1. ✅ **Core app:** lesson list, flashcards, quiz, progress saved on the device.
    Plain HTML/CSS/JS with no build tools, so it opens straight from the file.
-2. **Native audio:** record one native speaker per phrase (`audio/*.mp3`) and
-   add a play button.
+2. ✅ **Native audio:** play and slow-play buttons on every phrase, plus a
+   recording studio (`#/record`) so a native speaker can record from a phone.
 3. **Paywall:** lock lessons 2+ and add an "Unlock" button that goes to a Stripe
    Payment Link, which returns with an unlock code.
 4. **Ship it:** deploy free on GitHub Pages / Netlify, make it an installable

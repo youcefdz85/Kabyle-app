@@ -94,3 +94,26 @@ main { max-width: 520px; margin: 0 auto; padding: 16px; }
 
 .result { text-align: center; padding: 24px 0; }
 .result .big { font-size: 3rem; }
+
+.audio { display: flex; justify-content: center; gap: 10px; }
+.play {
+  width: 48px; height: 48px; border-radius: 50%; border: 0;
+  background: var(--brand); color: #fff; font-size: 1.1rem; cursor: pointer;
+}
+.play.slow { background: var(--brand-soft); }
+.no-audio { color: var(--muted); font-size: 0.8rem; }
+.question + .audio { margin: -8px 0 20px; }
+
+.rec-lesson { font-size: 1.1rem; margin: 24px 0 8px; }
+.rec-row {
+  background: var(--card); border-radius: var(--radius); padding: 14px; margin-bottom: 10px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.rec-row .audio { justify-content: flex-start; }
+.rec-row .actions { margin-top: 0; }
+.rec-kab { font-weight: 700; font-size: 1.2rem; color: var(--brand); }
+.rec-status { color: var(--muted); font-size: 0.9rem; display: flex; flex-direction: column; gap: 8px; }
+.rec-status audio { width: 100%; }
+.mono { font-family: ui-monospace, monospace; }
+.btn.recording { background: var(--bad); }
+.btn.save { text-align: center; text-decoration: none; }
