@@ -5,6 +5,7 @@
 // Optional: say (English-style pronunciation hint, shown in English only),
 // note ({ en, fr, es, de }: usage / culture).
 // Lesson titles are { en, fr, es, de } too.
+// Picture cards are drawn in pictures.js, keyed by "<lessonId>-<phraseId>".
 // "free: true" lessons are available without unlocking (paywall comes in step 3).
 // Run `node tests/check-content.js` after editing to catch missing translations.
 // ⚠️ Please have a native speaker review every phrase before selling.

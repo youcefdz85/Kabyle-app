@@ -8,6 +8,7 @@ const root = path.join(__dirname, "..");
 const window = {};
 vm.runInNewContext(fs.readFileSync(path.join(root, "data/lessons.js"), "utf8"), { window });
 vm.runInNewContext(fs.readFileSync(path.join(root, "i18n.js"), "utf8"), { window });
+vm.runInNewContext(fs.readFileSync(path.join(root, "pictures.js"), "utf8"), { window, Math });
 
 const langs = Object.keys(window.I18N);
 const problems = [];
@@ -45,10 +46,16 @@ for (const lesson of window.LESSONS) {
   }
 }
 
+// Pictures: each one belongs to a real phrase (keys are "<lessonId>-<phraseId>").
+const phraseKeys = new Set(window.LESSONS.flatMap(l => l.phrases.map(p => `${l.id}-${p.id}`)));
+for (const key of window.Pictures.keys()) {
+  if (!phraseKeys.has(key)) problems.push(`pictures.js: "${key}" doesn't match any phrase`);
+}
+
 if (problems.length) {
   console.error(problems.join("\n"));
   console.error(`\n${problems.length} problem(s) found.`);
   process.exit(1);
 }
 const phrases = window.LESSONS.reduce((n, l) => n + l.phrases.length, 0);
-console.log(`OK: ${window.LESSONS.length} lessons, ${phrases} phrases, ${langs.length} languages (${langs.join(", ")}).`);
+console.log(`OK: ${window.LESSONS.length} lessons, ${phrases} phrases, ${window.Pictures.keys().length} pictures, ${langs.length} languages (${langs.join(", ")}).`);
