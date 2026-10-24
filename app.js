@@ -82,6 +82,7 @@
 
   function screen(...content) {
     stopAudio();
+    if (window.Art) window.Art.clear();
     app.replaceChildren(...content.filter(c => c != null));
     window.scrollTo(0, 0);
   }
@@ -163,32 +164,9 @@
     return { el, play };
   }
 
-  // ---------- sound effects (synthesised, no files needed) ----------
-  let audioCtx = null;
-  function tones(notes, type = "sine") {
-    try {
-      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-      const t0 = audioCtx.currentTime;
-      for (const [freq, start, dur] of notes) {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = type;
-        osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0.0001, t0 + start);
-        gain.gain.exponentialRampToValueAtTime(0.15, t0 + start + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.0001, t0 + start + dur);
-        osc.connect(gain).connect(audioCtx.destination);
-        osc.start(t0 + start);
-        osc.stop(t0 + start + dur + 0.05);
-      }
-    } catch { /* no sound available */ }
-  }
-  const sfx = {
-    right: () => tones([[880, 0, 0.12], [1318.5, 0.1, 0.25]]),
-    wrong: () => tones([[220, 0, 0.18], [185, 0.15, 0.3]], "triangle"),
-    pair: () => tones([[987.8, 0, 0.12]]),
-    done: () => tones([[523.3, 0, 0.15], [659.3, 0.12, 0.15], [784, 0.24, 0.15], [1046.5, 0.36, 0.45]])
-  };
+  // Sound effects live in sound.js, drawings and celebrations in art.js.
+  const { Sound, Art } = window;
+  let justDone = null; // the level just completed, so the path can celebrate it
 
   // ---------- home: the path ----------
   const OFFSETS = [0, 44, 70, 44, 0, -44, -70, -44];
@@ -198,6 +176,9 @@
     const top = h("header", { class: "stats" },
       h("img", { class: "logo", src: "icons/logo-96.png", alt: "Awal", width: 36, height: 36 }),
       h("div", { class: "spacer" }),
+      h("button", { class: "sound-btn", "aria-label": Sound.enabled ? t("soundOn") : t("soundOff"), "aria-pressed": String(Sound.enabled),
+        onclick: e => { const on = Sound.toggle(); e.currentTarget.textContent = on ? "🔊" : "🔇"; e.currentTarget.setAttribute("aria-pressed", String(on)); e.currentTarget.setAttribute("aria-label", on ? t("soundOn") : t("soundOff")); } },
+        Sound.enabled ? "🔊" : "🔇"),
       h("button", { class: "lang-btn", "aria-label": t("language"), onclick: toggleLangMenu }, t("flag")),
       h("div", { class: `stat streak${practisedToday(state) ? "" : " off"}`, title: t("dayStreak") }, "🔥 ", currentStreak(state)),
       h("div", { class: "stat xp", title: t("totalXp") }, "⚡ ", state.xp));
@@ -210,9 +191,10 @@
         h("div", { class: "unit-emoji" }, unit.lesson.emoji)),
       h("div", { class: "path" }, unit.nodes.map((node, i) => nodeEl(node, i, state)))));
 
-    screen(top, h("main", { class: "home" }, ...units, installHint()));
-    const current = app.querySelector(".node.current");
-    if (current) current.scrollIntoView({ block: "center" });
+    screen(top, h("main", { class: "home" }, Art.djurdjura(), ...units, installHint()));
+    const focus = app.querySelector(".node.just-done") || app.querySelector(".node.current");
+    if (focus) focus.scrollIntoView({ block: "center" });
+    justDone = null;
   }
 
   function nodeEl(node, i, state) {
@@ -221,10 +203,17 @@
     const wrap = h("div", { class: `node-wrap ${status}`, style: `--x:${OFFSETS[i % OFFSETS.length]}px` },
       status === "current" ? h("div", { class: "start-bubble" }, t("start")) : null,
       h("button", {
-        class: `node ${status} ${node.type}`,
+        class: `node ${status} ${node.type}${justDone === node.id ? " just-done" : ""}`,
         "aria-label": `${titleOf(node.lesson)}: ${nodeLabel(node)}`,
-        onclick: () => togglePopover(wrap, node, status)
+        onclick: () => { Sound.play("tap"); togglePopover(wrap, node, status); }
       }, icon));
+    // An olive sprig grows beside every completed level, on the side away from the path's curve.
+    if (status === "done") {
+      const x = OFFSETS[i % OFFSETS.length];
+      const sprig = Art.olive(justDone === node.id);
+      sprig.classList.add(x > 0 || (x === 0 && i % 2) ? "left" : "right");
+      wrap.append(sprig);
+    }
     return wrap;
   }
 
@@ -312,6 +301,7 @@
         } }, "✕"),
         h("div", { class: "progress-bar" }, bar)),
       stage, footer);
+    Sound.play("start");
 
     function next() {
       bar.style.width = `${(doneCount / total) * 100}%`;
@@ -327,7 +317,12 @@
 
       function resolve(correct, solution, clean = correct) {
         if (!ex.retry) { graded++; if (clean) firstTry++; }
-        (correct ? sfx.right : sfx.wrong)();
+        Sound.play(correct ? "right" : "wrong");
+        if (correct) {
+          const from = stage.querySelector(".option.right, .answer-line, .match") || stage;
+          const box = from.getBoundingClientRect();
+          Art.burst(box.left + box.width / 2, box.top + box.height / 2);
+        }
         stage.firstChild.classList.add("answered");
         footer.classList.add(correct ? "right" : "wrong");
         msg.replaceChildren(h("div", { class: "fb-title" }, correct ? pick(t("praise")) : t("correctAnswer")));
@@ -363,7 +358,14 @@
       state.done[node.id] = true;
       if (newDay) state.streak = { count: currentStreak(state) + 1, last: dayKey() };
       saveState(state);
-      sfx.done();
+      justDone = replay ? null : node.id;
+      Sound.play("lesson");
+
+      // After this screen: the unit badge (first time a unit is finished), then the streak.
+      const after = [];
+      if (node.type === "review" && !replay) after.push(next => renderUnitDone(node.lesson, next));
+      if (newDay) after.push(next => renderStreak(state.streak.count, next));
+      const onward = () => (after.length ? after.shift()(onward) : go(""));
 
       const stat = (cls, label, value) => h("div", { class: `stat-card ${cls}` },
         h("div", { class: "lbl" }, label), h("div", { class: "val" }, value));
@@ -377,22 +379,39 @@
             stat("ok", t("accuracy"), `🎯 ${accuracy}%`),
             stat("teal", t("time"), `⏱ ${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}`))),
         h("footer", { class: "footer" }, h("div", { class: "footer-inner" }, h("div"),
-          h("button", { class: "btn", onclick: () => (newDay ? renderStreak(state.streak.count) : go("")) }, t("continue")))));
+          h("button", { class: "btn", onclick: onward }, t("continue")))));
+      Art.confetti();
+      Art.countUp(app.querySelector(".stat-card.gold .val"), xp, "⚡ ");
     }
 
     next();
   }
 
-  function renderStreak(count) {
-    sfx.done();
+  function renderUnitDone(lesson, onward) {
+    Sound.play("unit");
+    screen(
+      h("main", { class: "stage done-screen unit-done" },
+        Art.potteryBand(),
+        Art.tabzimt(),
+        h("h1", {}, t("unitCompleteTitle")),
+        h("p", {}, t("unitCompleteText", { title: titleOf(lesson) })),
+        h("p", { class: "muted small" }, t("tabzimtNote")),
+        (() => { const b = Art.potteryBand(); b.classList.add("bottom"); return b; })()),
+      h("footer", { class: "footer" }, h("div", { class: "footer-inner" }, h("div"),
+        h("button", { class: "btn", onclick: onward }, t("continue")))));
+    setTimeout(() => Art.confetti(2200), 900);
+  }
+
+  function renderStreak(count, onward = () => go("")) {
+    Sound.play("hearth");
     screen(
       h("main", { class: "stage done-screen" },
-        h("div", { class: "celebrate flame" }, "🔥"),
+        Art.kanun(),
         h("div", { class: "streak-num" }, count),
         h("h1", {}, count === 1 ? t("dayStreakOne") : t("dayStreakTitle")),
         h("p", { class: "muted" }, count === 1 ? t("streakStarted") : t("streakKeep"))),
       h("footer", { class: "footer" }, h("div", { class: "footer-inner" }, h("div"),
-        h("button", { class: "btn", onclick: () => go("") }, t("continue")))));
+        h("button", { class: "btn", onclick: onward }, t("continue")))));
   }
 
   // ---------- exercise types ----------
@@ -409,6 +428,7 @@
     const buttons = labels.map((label, i) => h("button", {
       class: "option", "data-key": i + 1, lang,
       onclick: () => {
+        Sound.play("tap");
         buttons.forEach(b => b.classList.remove("selected"));
         buttons[i].classList.add("selected");
         chosen = label;
@@ -458,8 +478,10 @@
       const bank = ex.bank.map(word => {
         const tile = h("button", { class: "tile", lang: "kab", onclick: () => {
           if (tile.classList.contains("used")) return;
+          Sound.play("tap");
           tile.classList.add("used");
           const placed = h("button", { class: "tile", lang: "kab", onclick: () => {
+            Sound.play("tap");
             placed.remove();
             picked.splice(picked.indexOf(placed), 1);
             tile.classList.remove("used");
@@ -497,6 +519,7 @@
           if (selected) selected.el.classList.remove("selected");
           selected = { el, p, side };
           el.classList.add("selected");
+          Sound.play("tap");
           return;
         }
         const other = selected;
@@ -504,11 +527,11 @@
         other.el.classList.remove("selected");
         if (other.p === p) {
           for (const b of [el, other.el]) { b.classList.add("matched"); b.disabled = true; }
-          if (--left === 0) setTimeout(() => api.resolve(true, null, mistakes === 0), 250);
-          else sfx.pair();
+          Sound.play("pair", ex.pairs.length - left);
+          if (--left === 0) setTimeout(() => api.resolve(true, null, mistakes === 0), 350);
         } else {
           mistakes++;
-          sfx.wrong();
+          Sound.play("wrong");
           for (const b of [el, other.el]) {
             b.classList.add("wrong");
             setTimeout(() => b.classList.remove("wrong"), 500);

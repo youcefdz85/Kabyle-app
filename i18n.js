@@ -56,7 +56,12 @@ window.I18N = {
     stop: "■ Stop",
     saveFile: "⬇ Save file",
     recording: "Recording… say the phrase clearly, then press Stop.",
-    micRefused: "Microphone permission was refused."
+    micRefused: "Microphone permission was refused.",
+    soundOn: "Sound on (tap to mute)",
+    soundOff: "Sound off (tap to turn on)",
+    unitCompleteTitle: "Unit complete!",
+    unitCompleteText: "You earned the tabzimt of “{title}”!",
+    tabzimtNote: "The tabzimt is the round silver brooch of Kabyle jewellery, worn for celebrations."
   },
 
   fr: {
@@ -112,7 +117,12 @@ window.I18N = {
     stop: "■ Stop",
     saveFile: "⬇ Sauvegarder",
     recording: "Enregistrement… dis la phrase clairement, puis appuie sur Stop.",
-    micRefused: "L'accès au micro a été refusé."
+    micRefused: "L'accès au micro a été refusé.",
+    soundOn: "Son activé (touche pour couper)",
+    soundOff: "Son coupé (touche pour activer)",
+    unitCompleteTitle: "Unité terminée !",
+    unitCompleteText: "Tu as gagné la tabzimt de « {title} » !",
+    tabzimtNote: "La tabzimt est la broche ronde en argent des bijoux kabyles, portée lors des fêtes."
   },
 
   es: {
@@ -168,7 +178,12 @@ window.I18N = {
     stop: "■ Parar",
     saveFile: "⬇ Guardar archivo",
     recording: "Grabando… di la frase con claridad y pulsa Parar.",
-    micRefused: "Se denegó el permiso del micrófono."
+    micRefused: "Se denegó el permiso del micrófono.",
+    soundOn: "Sonido activado (toca para silenciar)",
+    soundOff: "Sonido desactivado (toca para activar)",
+    unitCompleteTitle: "¡Unidad completada!",
+    unitCompleteText: "¡Has ganado la tabzimt de «{title}»!",
+    tabzimtNote: "La tabzimt es el broche redondo de plata de la joyería cabila, que se lleva en las fiestas."
   },
 
   de: {
@@ -224,6 +239,11 @@ window.I18N = {
     stop: "■ Stopp",
     saveFile: "⬇ Datei speichern",
     recording: "Aufnahme läuft… sag den Satz deutlich und tippe dann auf Stopp.",
-    micRefused: "Der Zugriff aufs Mikrofon wurde verweigert."
+    micRefused: "Der Zugriff aufs Mikrofon wurde verweigert.",
+    soundOn: "Ton an (tippen zum Stummschalten)",
+    soundOff: "Ton aus (tippen zum Einschalten)",
+    unitCompleteTitle: "Einheit geschafft!",
+    unitCompleteText: "Du hast die Tabzimt von „{title}“ verdient!",
+    tabzimtNote: "Die Tabzimt ist die runde Silberbrosche des kabylischen Schmucks, getragen bei Festen."
   }
 };
