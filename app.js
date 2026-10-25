@@ -124,48 +124,39 @@
   }
 
   // ---------- audio ----------
-  // Recordings live at audio/<lessonId>-<phraseId>.<ext>. The browser picks
-  // the first format that exists and that it can play.
-  const AUDIO_FORMATS = [["mp3", "audio/mpeg"], ["m4a", "audio/mp4"], ["webm", "audio/webm"], ["ogg", "audio/ogg"]];
-  let currentAudio = null;
+  // Recordings live at audio/<lessonId>-<phraseId>.<ext>. The published site has
+  // MP3s (the deploy converts every upload); other formats are for local testing.
+  const AUDIO_FORMATS = [["mp3", "audio/mpeg"], ["m4a", "audio/mp4"], ["webm", "audio/webm"], ["ogg", "audio/ogg"], ["wav", "audio/wav"]];
+
+  // One shared <audio> plays every recording. iPhone Safari only lets a page start
+  // sound by itself on an element that a tap has already started, so the first tap
+  // anywhere starts this one with a moment of silence.
+  const voice = new Audio();
+  const SILENCE = "data:audio/wav;base64,UklGRnQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVAAAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==";
+  const UNLOCK_EVENTS = ["touchend", "click", "keydown"]; // what Safari counts as a tap
+  function unlockVoice() {
+    UNLOCK_EVENTS.forEach(ev => document.removeEventListener(ev, unlockVoice, true));
+    if (voice.src) return;
+    voice.src = SILENCE;
+    voice.play().catch(() => {});
+  }
+  UNLOCK_EVENTS.forEach(ev => document.addEventListener(ev, unlockVoice, true));
 
   function audioName(p) { return `${p.lesson.id}-${p.id}`; }
 
-  function stopAudio() {
-    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  function stopAudio() { voice.pause(); }
+
+  function playUrl(url, rate = 1) {
+    voice.pause();
+    if (voice.src !== url) voice.src = url;
+    voice.defaultPlaybackRate = voice.playbackRate = rate;
+    try { voice.currentTime = 0; } catch { /* not loaded yet: starts at 0 anyway */ }
+    voice.play().catch(() => {});
   }
 
-  // Returns { el, play }. The buttons stay hidden until a recording loads;
-  // with showMissing, a phrase without one says so (used in the recording studio).
-  function player(p, { autoplay = false, showMissing = false } = {}) {
-    const audio = h("audio", { preload: "auto" },
-      AUDIO_FORMATS.map(([ext, type]) => h("source", { src: `audio/${audioName(p)}.${ext}`, type })));
-    let missing = false;
-    function play(rate = 1) {
-      if (missing) return;
-      stopAudio();
-      audio.currentTime = 0;
-      audio.playbackRate = rate;
-      currentAudio = audio;
-      audio.play().catch(() => {});
-    }
-    const el = h("div", { class: "audio pending" },
-      h("button", { class: "play", "aria-label": t("play"), onclick: e => { e.stopPropagation(); play(1); } }, "🔊"),
-      h("button", { class: "play slow", "aria-label": t("playSlow"), onclick: e => { e.stopPropagation(); play(0.7); } }, "🐢"),
-      audio);
-    audio.addEventListener("loadedmetadata", () => el.classList.remove("pending"));
-    // If no source loads, there's no recording yet.
-    audio.lastElementChild.addEventListener("error", () => {
-      missing = true;
-      el.replaceChildren(showMissing ? h("span", { class: "no-audio" }, t("noRecording")) : "");
-      el.classList.remove("pending");
-    });
-    if (autoplay) audio.addEventListener("canplaythrough", () => { if (el.isConnected) play(1); }, { once: true });
-    return { el, play };
-  }
-
-  // Whether a phrase has a recording, found by loading it once (cached; the service
-  // worker keeps the file, so this also preloads the lesson's audio).
+  // Where each phrase's recording is (a URL), or null if it has none. Found by
+  // loading it once; the service worker keeps the file, so this also preloads it.
+  const audioUrl = new Map();
   const audioKnown = new Map();
   function hasAudio(p) {
     const key = audioName(p);
@@ -173,12 +164,32 @@
       audioKnown.set(key, new Promise(resolve => {
         const a = h("audio", { preload: "metadata" },
           AUDIO_FORMATS.map(([ext, type]) => h("source", { src: `audio/${key}.${ext}`, type })));
-        const timer = setTimeout(() => resolve(false), 4000);
-        a.addEventListener("loadedmetadata", () => { clearTimeout(timer); resolve(true); });
-        a.lastElementChild.addEventListener("error", () => { clearTimeout(timer); resolve(false); });
+        const done = url => { clearTimeout(timer); audioUrl.set(key, url); resolve(url); };
+        const timer = setTimeout(() => done(null), 4000);
+        a.addEventListener("loadedmetadata", () => done(a.currentSrc));
+        a.lastElementChild.addEventListener("error", () => done(null));
       }));
     }
     return audioKnown.get(key);
+  }
+
+  // Returns { el, play }. The buttons stay hidden until the recording is found;
+  // with showMissing, a phrase without one says so (used in the recording studio).
+  function player(p, { autoplay = false, showMissing = false } = {}) {
+    const key = audioName(p);
+    function play(rate = 1) {
+      const url = audioUrl.get(key);
+      if (url) playUrl(url, rate);
+    }
+    const el = h("div", { class: "audio pending" },
+      h("button", { class: "play", "aria-label": t("play"), onclick: e => { e.stopPropagation(); play(1); } }, "🔊"),
+      h("button", { class: "play slow", "aria-label": t("playSlow"), onclick: e => { e.stopPropagation(); play(0.7); } }, "🐢"));
+    hasAudio(p).then(url => {
+      el.classList.remove("pending");
+      if (!url) el.replaceChildren(showMissing ? h("span", { class: "no-audio" }, t("noRecording")) : "");
+      else if (autoplay && el.isConnected) play(1);
+    });
+    return { el, play };
   }
 
   // "Can't listen now" turns listening exercises off for an hour.
@@ -270,8 +281,8 @@
 
   // ---------- building a lesson ----------
   function words(text) { return text.split(/\s+/).filter(Boolean); }
-  function norm(text) { return text.toLowerCase().replace(/[.,!?…]/g, "").replace(/\s+/g, " ").trim(); }
-  function tileText(word) { return word.replace(/[.,!?…]/g, ""); }
+  function norm(text) { return text.toLowerCase().replace(/[.,!?…/]/g, "").replace(/\s+/g, " ").trim(); }
+  function tileText(word) { return word.replace(/[.,!?…/]/g, ""); }
   const canBuild = p => words(p.kab).length >= 2 && !/[/…]/.test(p.kab);
 
   // n other phrases whose `key` text differs from the answer, preferring the same unit.

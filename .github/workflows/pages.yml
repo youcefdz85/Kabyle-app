@@ -28,6 +28,21 @@ jobs:
           mkdir _site
           cp -r index.html app.js i18n.js sound.js art.js pictures.js styles.css sw.js manifest.webmanifest data icons fonts audio _site/
           rm -f _site/audio/README.md _site/icons/logo-source.png
+      # Phones save recordings in different formats (iPhone's are fragmented MP4,
+      # which Safari won't play from a website). Publish every recording as a
+      # standard MP3 at an even volume, whatever format was uploaded.
+      - name: Convert recordings to MP3
+        run: |
+          command -v ffmpeg >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg; }
+          cd _site/audio
+          shopt -s nullglob
+          for f in *.m4a *.mp4 *.webm *.ogg *.wav *.aac *.caf *.mp3; do
+            out="${f%.*}.mp3"
+            ffmpeg -nostdin -loglevel error -y -i "$f" -af loudnorm=I=-16:TP=-1.5:LRA=11 -ac 1 -ar 44100 -c:a libmp3lame -b:a 96k "tmp-$out"
+            rm -f "$f"
+            mv "tmp-$out" "$out"
+          done
+          ls -la
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
