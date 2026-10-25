@@ -5,7 +5,7 @@ spoken at home. It works like Duolingo: a path of short levels with mixed
 exercises (new phrases, multiple choice, sentence building, matching pairs),
 plus XP and a daily streak.
 
-You can learn in **English, French, Spanish or German**. The app picks the
+You can learn in **English, French, Spanish, German or Arabic** (right to left). The app picks the
 phone's language on the first visit, and the flag button in the top bar
 switches it at any time.
 
@@ -21,7 +21,7 @@ usage). Each lesson becomes a unit on the path. Its phrases are split
 automatically into levels of about 4, followed by a unit review. Exercises are
 generated from the phrases, so adding phrases is all it takes to add content.
 
-Every phrase needs a translation in each app language (`en`, `fr`, `es`, `de`).
+Every phrase needs a translation in each app language (`en`, `fr`, `es`, `de`, `ar`).
 Interface text is in [`i18n.js`](i18n.js). After editing either file, run:
 
     node tests/check-content.js

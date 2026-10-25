@@ -228,7 +228,7 @@ button { font: inherit; }
 .meaning { font-size: 1.4rem; font-weight: 800; margin: 16px 0 8px; }
 .note { color: var(--muted); background: var(--card); border: 2px solid var(--tile); border-radius: var(--radius); padding: 12px 14px; }
 
-.audio { display: flex; gap: 10px; margin: -6px 0 16px 88px; }
+.audio { display: flex; gap: 10px; margin-block: -6px 16px; margin-inline-start: 88px; }
 .audio.pending { display: none; }
 .play {
   width: 48px; height: 44px; border-radius: 14px; border: 0;
@@ -245,7 +245,7 @@ button { font: inherit; }
   background: var(--card); color: var(--ink); font-weight: 700;
   cursor: pointer;
 }
-.option { display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px 16px; font-size: 1.1rem; text-align: left; }
+.option { display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px 16px; font-size: 1.1rem; text-align: start; }
 .option .key {
   flex: none; display: grid; place-items: center; width: 30px; height: 30px;
   border: 2px solid var(--tile); border-radius: 8px; color: var(--muted); font-size: 0.85rem;
@@ -354,7 +354,7 @@ button { font: inherit; }
   font-size: 1.3rem; line-height: 1; padding: 4px 8px; cursor: pointer;
 }
 .lang-menu {
-  position: absolute; top: calc(100% + 6px); right: 16px; z-index: 30;
+  position: absolute; top: calc(100% + 6px); inset-inline-end: 16px; z-index: 30;
   display: flex; flex-direction: column; min-width: 190px;
   background: var(--card); border: 2px solid var(--tile); border-radius: var(--radius);
   box-shadow: 0 8px 24px rgb(0 0 0 / 0.15); padding: 6px; animation: pop-menu 0.12s ease-out;
@@ -362,7 +362,7 @@ button { font: inherit; }
 .lang-item {
   display: flex; align-items: center; gap: 12px;
   background: none; border: 0; border-radius: 10px; padding: 10px 12px;
-  color: var(--ink); font-weight: 700; font-size: 1.05rem; text-align: left; cursor: pointer;
+  color: var(--ink); font-weight: 700; font-size: 1.05rem; text-align: start; cursor: pointer;
 }
 .lang-item:hover { background: var(--sel-bg); }
 .lang-item.active { color: var(--sel-ink); background: var(--sel-bg); }
@@ -466,11 +466,11 @@ button { font: inherit; }
 .pic svg { width: 100%; height: 100%; display: block; }
 .pic-bg { fill: #f3ecdc; }
 @media (prefers-color-scheme: dark) { .pic-bg { fill: #1f3540; } }
-.intro-pic { width: 150px; height: 150px; margin: 4px 0 0 88px; border: 2px solid var(--tile); }
+.intro-pic { width: 150px; height: 150px; margin-top: 4px; margin-inline-start: 88px; border: 2px solid var(--tile); }
 .prompt-pic { width: min(200px, 55vw); height: min(200px, 55vw); margin: 0 auto 20px; border: 2px solid var(--tile); box-shadow: 0 4px 0 var(--tile); }
 .pic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .option.pic-card { position: relative; flex-direction: column; justify-content: flex-start; gap: 8px; padding: 12px 10px; text-align: center; font-size: 1rem; }
-.option.pic-card .key { position: absolute; top: 8px; left: 8px; width: 24px; height: 24px; font-size: 0.75rem; background: var(--card); z-index: 1; }
+.option.pic-card .key { position: absolute; top: 8px; inset-inline-start: 8px; width: 24px; height: 24px; font-size: 0.75rem; background: var(--card); z-index: 1; }
 .option.pic-card .pic { width: 100%; max-width: 130px; aspect-ratio: 1; }
 
 /* ---------- listening exercises ---------- */
@@ -489,3 +489,14 @@ button { font: inherit; }
   display: block; margin: 10px auto 18px; padding: 6px 10px; background: none; border: 0; cursor: pointer;
   color: var(--muted); font-weight: 800; font-size: 0.9rem; letter-spacing: 0.06em; text-transform: uppercase;
 }
+
+/* ---------- right-to-left (Arabic) ---------- */
+/* Kabyle is written left to right, even inside an Arabic page. */
+[lang="kab"], .answer-line, .bank, .mono { direction: ltr; unicode-bidi: isolate; }
+[dir="rtl"] .bubble::before {
+  left: auto; right: -11px;
+  border-left: 0; border-right: 2px solid var(--tile);
+  transform: rotate(-45deg);
+}
+/* Letter spacing breaks the joined letters of Arabic script. */
+[dir="rtl"] * { letter-spacing: 0 !important; }
