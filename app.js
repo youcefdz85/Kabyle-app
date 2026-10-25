@@ -55,11 +55,16 @@
     }
     return "en";
   }
+  const RTL = ["ar"];
   let lang = savedLang() || detectLang();
-  document.documentElement.lang = lang;
+  function applyLang() {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = RTL.includes(lang) ? "rtl" : "ltr";
+  }
+  applyLang();
   function setLang(l) {
     lang = l;
-    document.documentElement.lang = l;
+    applyLang();
     try { localStorage.setItem(LANG_KEY, l); } catch { /* private mode */ }
   }
   function t(key, vars = {}) {
@@ -269,7 +274,8 @@
       ? t("lockedText")
       : node.type === "review"
         ? t("reviewText", { n, title: titleOf(node.lesson) })
-        : t("learnText", { n, examples: node.phrases.slice(0, 2).map(p => p.kab).join(", ") });
+        // Kabyle examples are isolated so they keep left-to-right order inside Arabic text.
+        : t("learnText", { n, examples: "\u2068" + node.phrases.slice(0, 2).map(p => p.kab).join(", ") + "\u2069" });
     wrap.append(h("div", { class: `popover ${status}` },
       h("div", { class: "pop-title" }, nodeLabel(node)),
       h("p", {}, text),
@@ -783,7 +789,7 @@
     const order = [lang, ...LANGS.filter(l => l !== lang)];
     screen(h("main", { class: "stage welcome" },
       h("img", { class: "welcome-logo", src: "icons/logo-192.png", alt: "Awal", width: 120, height: 120 }),
-      h("h1", {}, "Azul!"),
+      h("h1", { lang: "kab" }, "Azul!"),
       h("p", { class: "welcome-title" }, t("welcomeTitle")),
       h("p", { class: "muted" }, t("welcomeText")),
       h("h2", {}, t("iSpeak")),
@@ -795,6 +801,7 @@
   function closeLangMenu() { document.querySelector(".lang-menu")?.remove(); }
   function toggleLangMenu(e) {
     e.stopPropagation();
+    closePopover();
     if (document.querySelector(".lang-menu")) return closeLangMenu();
     e.currentTarget.parentElement.append(h("div", { class: "lang-menu", role: "menu" },
       LANGS.map(l => h("button", {
