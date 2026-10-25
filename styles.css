@@ -472,3 +472,20 @@ button { font: inherit; }
 .option.pic-card { position: relative; flex-direction: column; justify-content: flex-start; gap: 8px; padding: 12px 10px; text-align: center; font-size: 1rem; }
 .option.pic-card .key { position: absolute; top: 8px; left: 8px; width: 24px; height: 24px; font-size: 0.75rem; background: var(--card); z-index: 1; }
 .option.pic-card .pic { width: 100%; max-width: 130px; aspect-ratio: 1; }
+
+/* ---------- listening exercises ---------- */
+.listen-prompt { display: flex; justify-content: center; align-items: flex-end; gap: 16px; margin: 12px 0 0; }
+.listen-prompt .audio { display: none; }
+.big-play {
+  width: 100px; height: 100px; border-radius: 26px; border: 0; cursor: pointer;
+  background: var(--sel); color: #fff; font-size: 2.6rem;
+  box-shadow: 0 6px 0 var(--brand-dark);
+}
+.big-play.slow { width: 72px; height: 72px; border-radius: 20px; font-size: 1.9rem; background: var(--card); border: 2px solid var(--tile); box-shadow: 0 5px 0 var(--tile); }
+.big-play:active { transform: translateY(5px); box-shadow: none; }
+.transcript { text-align: center; min-height: 0; margin: -10px 0 14px; }
+.transcript:empty { display: none; }
+.link-btn {
+  display: block; margin: 10px auto 18px; padding: 6px 10px; background: none; border: 0; cursor: pointer;
+  color: var(--muted); font-weight: 800; font-size: 0.9rem; letter-spacing: 0.06em; text-transform: uppercase;
+}
