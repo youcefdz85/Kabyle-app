@@ -164,6 +164,33 @@
     return { el, play };
   }
 
+  // Whether a phrase has a recording, found by loading it once (cached; the service
+  // worker keeps the file, so this also preloads the lesson's audio).
+  const audioKnown = new Map();
+  function hasAudio(p) {
+    const key = audioName(p);
+    if (!audioKnown.has(key)) {
+      audioKnown.set(key, new Promise(resolve => {
+        const a = h("audio", { preload: "metadata" },
+          AUDIO_FORMATS.map(([ext, type]) => h("source", { src: `audio/${key}.${ext}`, type })));
+        const timer = setTimeout(() => resolve(false), 4000);
+        a.addEventListener("loadedmetadata", () => { clearTimeout(timer); resolve(true); });
+        a.lastElementChild.addEventListener("error", () => { clearTimeout(timer); resolve(false); });
+      }));
+    }
+    return audioKnown.get(key);
+  }
+
+  // "Can't listen now" turns listening exercises off for an hour.
+  const NO_LISTEN_KEY = "awal.noListenUntil";
+  function canListen() {
+    try { return Date.now() > Number(localStorage.getItem(NO_LISTEN_KEY) || 0); } catch { return true; }
+  }
+  function pauseListening() {
+    try { localStorage.setItem(NO_LISTEN_KEY, String(Date.now() + 60 * 60 * 1000)); } catch { /* private mode */ }
+  }
+  const isListening = ex => ex.type === "listen" || !!ex.listen;
+
   // Sound effects live in sound.js, drawings and celebrations in art.js.
   const { Sound, Art } = window;
   let justDone = null; // the level just completed, so the path can celebrate it
@@ -263,7 +290,8 @@
   const picOf = p => window.Pictures.get(p.lesson.id, p.id);
   const PICTURED = ALL_PHRASES.filter(picOf);
 
-  function buildExercises(node) {
+  // `heard` holds the phrases with a recording, which can have listening exercises.
+  function buildExercises(node, heard = new Set()) {
     const pool = UNITS[node.unit].phrases;
     const pics = pool.filter(picOf);
     const usePics = p => pics.length >= 4 && !!picOf(p);
@@ -278,7 +306,14 @@
         .slice(0, Math.max(2, 6 - answer.length));
       return { type: "build", p, bank: shuffle([...answer, ...extra]) };
     };
+    // Listening: hear the phrase with no text, then pick its meaning (or picture),
+    // or build it from Kabyle word tiles.
+    const listen = p => usePics(p)
+      ? { type: "listen", p, pics: true, options: shuffle([p, ...distractors(p, lang, pics, 3, PICTURED)]) }
+      : { type: "listen", p, options: shuffle([p, ...distractors(p, lang, pool, 3)]) };
+    const dictation = p => ({ ...build(p), listen: true });
     const practise = p => {
+      if (heard.has(p) && Math.random() < 0.45) return canBuild(p) && Math.random() < 0.6 ? dictation(p) : listen(p);
       if (usePics(p) && Math.random() < 0.5) return choosePic(p, "picname");
       return canBuild(p) && Math.random() < 0.6 ? build(p) : choose(p, "en2kab");
     };
@@ -290,16 +325,31 @@
       return steps.concat(shuffle(node.phrases.map(practise)));
     }
     const steps = shuffle(node.phrases).slice(0, 8)
-      .map(p => pick([() => (usePics(p) ? choosePic(p, "pick") : choose(p, "kab2en")), () => choose(p, "en2kab"), () => practise(p)])());
+      .map(p => pick([
+        () => (usePics(p) ? choosePic(p, "pick") : choose(p, "kab2en")),
+        () => choose(p, "en2kab"),
+        () => (heard.has(p) ? listen(p) : practise(p)),
+        () => practise(p)
+      ])());
     steps.splice(4, 0, match(node.phrases));
     return steps;
   }
 
   // ---------- running a lesson ----------
   function renderSession(node) {
+    // Find which of this level's phrases have a recording before choosing exercises.
+    const at = location.hash;
+    screen(h("main", { class: "stage" }));
+    const checks = canListen() ? node.phrases.map(p => hasAudio(p).then(ok => ok && p)) : [];
+    Promise.all(checks).then(found => {
+      if (location.hash === at) startSession(node, new Set(found.filter(Boolean)));
+    });
+  }
+
+  function startSession(node, heard) {
     const replay = !!loadState().done[node.id];
-    const queue = buildExercises(node);
-    const total = queue.length;
+    const queue = buildExercises(node, heard);
+    let total = queue.length;
     const started = Date.now();
     let doneCount = 0, graded = 0, firstTry = 0;
 
@@ -349,7 +399,15 @@
       }
       const api = {
         ready(fn) { check = fn; btn.disabled = !fn; },
-        resolve
+        resolve,
+        // "Can't listen now": drop this and every other listening exercise, no penalty.
+        skipListening() {
+          pauseListening();
+          const keep = queue.filter(e => !isListening(e));
+          total -= queue.length - keep.length + 1;
+          queue.splice(0, queue.length, ...keep);
+          next();
+        }
       };
       btn.onclick = () => { if (check) { const r = check(); resolve(r.correct, r.solution); } };
       if (ex.type === "intro") {
@@ -462,6 +520,18 @@
     return h("div", { class: pics ? "options pic-grid" : "options" }, buttons);
   }
 
+  // Big play and slow-play buttons for listening exercises (plays once on its own),
+  // with "Can't listen now" underneath.
+  function listenPrompt(p, api) {
+    const audio = player(p, { autoplay: true });
+    return h("div", {},
+      h("div", { class: "listen-prompt" },
+        h("button", { class: "big-play", "aria-label": t("play"), onclick: () => audio.play(1) }, "🔊"),
+        h("button", { class: "big-play slow", "aria-label": t("playSlow"), onclick: () => audio.play(0.7) }, "🐢"),
+        audio.el),
+      h("button", { class: "link-btn", onclick: api.skipListening }, t("cantListen")));
+  }
+
   const EXERCISES = {
     intro(ex) {
       const p = ex.p;
@@ -507,6 +577,18 @@
         choices(ex.options.map(o => o.kab), ex.p.kab, api, { lang: "kab", onCheck: () => audio.play() }));
     },
 
+    listen(ex, api) {
+      const transcript = h("div", { class: "kab transcript", lang: "kab" });
+      return h("div", { class: "exercise" },
+        h("h2", {}, t("listenTitle")),
+        listenPrompt(ex.p, api),
+        transcript,
+        choices(ex.options.map(meaning), meaning(ex.p), api, {
+          pics: ex.pics ? ex.options.map(picOf) : undefined,
+          onCheck: () => { transcript.textContent = ex.p.kab; }
+        }));
+    },
+
     build(ex, api) {
       const audio = player(ex.p);
       const line = h("div", { class: "answer-line" });
@@ -535,8 +617,8 @@
         return { correct: norm(said) === norm(ex.p.kab), solution: ex.p.kab };
       }
       return h("div", { class: "exercise" },
-        h("h2", {}, t("translate")),
-        guide(meaning(ex.p)),
+        h("h2", {}, ex.listen ? t("tapWhatYouHear") : t("translate")),
+        ex.listen ? listenPrompt(ex.p, api) : guide(meaning(ex.p)),
         line,
         h("div", { class: "bank" }, bank));
     },
