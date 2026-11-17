@@ -73,10 +73,10 @@ def build_audio(path):
 
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
-    out = os.path.join(OUT, "Zedek_Mouloud_Philadelphia_Teaser3_40s.mp4")
-    wav = build_audio(os.path.join(OUT, "_teaser3_mix.wav"))
+    out = os.path.join(OUT, out_name("Zedek_Mouloud_Philadelphia_Teaser3_40s.mp4"))
+    wav = build_audio(os.path.join(OUT, f"_teaser3_mix_{FMT}.wav"))
     prev = None
     if "--stills" in sys.argv:
-        d = os.path.join(OUT, "qc_t3"); os.makedirs(d, exist_ok=True)
+        d = os.path.join(OUT, "qc_t3" + ("" if FMT == "9x16" else "_" + FMT)); os.makedirs(d, exist_ok=True)
         prev = {int(t * FPS): os.path.join(d, f"t{t:05.2f}.png") for t in np.arange(0.5, 40, 0.5)}
     build().render(out, wav, preview_frames=prev); os.remove(wav); print("done", out)

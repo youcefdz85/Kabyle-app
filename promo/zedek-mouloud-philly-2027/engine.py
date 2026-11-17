@@ -16,7 +16,19 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 ROOT = os.path.dirname(os.path.abspath(__file__))
 MEDIA = os.environ.get("MEDIA_DIR", os.path.join(ROOT, "media"))
 OUT = os.path.join(ROOT, "output")
-W, H, FPS = 1080, 1920, 30
+# Output format. Layouts are authored on the 1080x1920 canvas; other formats remap them:
+# y' = (y - YC) * LS + H/2, x' = W/2 + (x - W/2) * LS, and every overlay is scaled by LS.
+FORMATS = {"9x16": (1080, 1920, 1.0, 960), "4x5": (1080, 1350, 0.90, 873),
+           "1x1": (1080, 1080, 0.74, 873), "16x9": (1920, 1080, 0.74, 873)}
+FMT = os.environ.get("FORMAT", "9x16")
+W, H, LS, YC = FORMATS[FMT]
+FPS = 30
+
+def out_name(base):
+    """Zedek_..._40s.mp4 -> Zedek_..._40s_4x5.mp4 for non-vertical formats"""
+    if FMT == "9x16": return base
+    root, ext = os.path.splitext(base)
+    return f"{root}_{FMT}{ext}"
 SR = 48000
 
 # ---------------------------------------------------------------- palette
@@ -254,12 +266,14 @@ class Element:
         elif self.out_anim == "up":
             alpha *= ease_in_out(v); dy -= 30 * (1 - v)
         if alpha <= 0.003: return
+        scale *= LS
         if abs(scale - 1) > 1e-3:
             layer = layer.resize((max(1, int(layer.width * scale)), max(1, int(layer.height * scale))), Image.BICUBIC)
         if alpha < 0.999:
             a = layer.getchannel("A").point(lambda x: int(x * alpha))
             layer = layer.copy(); layer.putalpha(a)
-        x = int(self.cx - layer.width / 2); y = int(self.cy - layer.height / 2 + dy)
+        x = int(W / 2 + (self.cx - W / 2) * LS - layer.width / 2)
+        y = int((self.cy - YC) * LS + H / 2 - layer.height / 2 + dy * LS)
         canvas.alpha_composite(layer, (max(0, x), max(0, y)), (max(0, -x), max(0, -y)))
 
 # ---------------------------------------------------------------- compositor

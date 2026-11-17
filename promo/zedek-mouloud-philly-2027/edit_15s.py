@@ -39,8 +39,8 @@ def build_audio(path):
 
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
-    out = os.path.join(OUT, "Zedek_Mouloud_Philadelphia_Ad_15s.mp4")
-    wav = build_audio(os.path.join(OUT, "_ad15_mix.wav"))
+    out = os.path.join(OUT, out_name("Zedek_Mouloud_Philadelphia_Ad_15s.mp4"))
+    wav = build_audio(os.path.join(OUT, f"_ad15_mix_{FMT}.wav"))
     prev = None
     if "--stills" in sys.argv:
         d = os.path.join(OUT, "qc_15s"); os.makedirs(d, exist_ok=True)

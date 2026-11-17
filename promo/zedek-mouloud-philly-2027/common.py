@@ -26,10 +26,10 @@ def poster_panel(size=860):
 def card_background():
     """blurred, darkened poster as a navy backdrop for the end card"""
     p = poster_img()
-    s = H / p.height
-    big = p.resize((int(p.width * s), H), Image.LANCZOS)
-    x0 = (big.width - W) // 2
-    bg = big.crop((x0, 0, x0 + W, H)).filter(ImageFilter.GaussianBlur(38))
+    s = max(H / p.height, W / p.width)
+    big = p.resize((int(p.width * s), int(p.height * s)), Image.LANCZOS)
+    x0 = (big.width - W) // 2; y0 = (big.height - H) // 2
+    bg = big.crop((x0, y0, x0 + W, y0 + H)).filter(ImageFilter.GaussianBlur(38))
     a = np.asarray(bg, np.float32) * 0.36
     navy = np.array(NAVY, np.float32)
     y = np.linspace(0, 1, H)[:, None, None]
