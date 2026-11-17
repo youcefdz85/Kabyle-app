@@ -7,10 +7,11 @@ title and sound effect is defined in code.
 |---|---|---|
 | A. 40 s teaser, 1080×1920, 30 fps, H.264 + AAC 48 kHz, −14 LUFS | `edit_40s.py` | `output/Zedek_Mouloud_Philadelphia_Teaser_40s.mp4` |
 | B. 15 s ad (Reels/TikTok) | `edit_15s.py` | `output/Zedek_Mouloud_Philadelphia_Ad_15s.mp4` |
+| Teaser 2, 40 s ("Asderfef", 125 BPM, all-new shots) | `edit_teaser2.py` | `output/Zedek_Mouloud_Philadelphia_Teaser2_40s.mp4` |
 | C. Cover 1080×1920 | `cover.py` | `output/Zedek_Mouloud_Philadelphia_Cover.png` |
 
 ## Setup
-Put the source files in `media/` (gitignored) under these names (music: `music_alluh_alluh_2024.mp3`, the client-supplied "Alluh Alluh" track):
+Put the source files in `media/` (gitignored) under these names (music: `music_alluh_alluh_2024.mp3` = "Alluh Alluh", `music_asderfef.mp3` = "Asderfef", both client-supplied):
 `clip1_checkered_211029.mp4, clip2_mandole_211136.mp4, clip3_mandole_211242.mp4,
 clip4a/4b/4c_band_211659.mov, philly_drone_212605.mp4, poster_official.jpg`.
 Then: `python3 cover.py && python3 edit_15s.py && python3 edit_40s.py` (add `--stills` for QC frames).
