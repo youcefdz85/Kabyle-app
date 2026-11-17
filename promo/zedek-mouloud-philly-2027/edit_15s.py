@@ -22,7 +22,7 @@ def build():
         S(Shot(B(8 + 2 * k), B(10 + 2 * k), src, ss, cx=cx, cy=cy, z0=1.0, z1=1.06))
     S(Shot(B(16), B(22) + 0.5, "bandB", 21.0, cx=0.5, cy=0.55, z0=1.05, z1=1.14))
     tl.flash(B(16), dur=0.25, strength=0.6)
-    announcement(tl, [B(16), B(17), B(18), B(19), B(20)], B(22) - 0.02)
+    announcement(tl, [B(16), B(17), B(18), B(19), B(20)], B(22) - 0.02, yennayer=False)
     end_card(tl, B(22), DUR, sweeps=(B(22) + 2.4, B(22) + 3.5))
     tl.fade_out = (14.6, 15.0)
     return tl

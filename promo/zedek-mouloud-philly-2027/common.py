@@ -61,20 +61,21 @@ class ShimmerPill(Element):
         self.layer = layer
         super().draw(canvas, t)
 
-def end_card(tl, t0, t1, top=250, sweeps=()):
+def end_card(tl, t0, t1, top=212, sweeps=()):
     """Final poster reveal with title, details and call to action."""
     tl.cards.append((t0, t1, lambda t: card_background()))
     tl.elements += [
-        Element(t0, t1, poster_panel(860), W // 2, 860, anim="settle", din=0.8, dout=0.0, scale_drift=0.025),
+        Element(t0, t1, poster_panel(820), W // 2, 878, anim="settle", din=0.8, dout=0.0, scale_drift=0.025),
         Element(t0 + 0.35, t1, fit_text("ZEDEK MOULOUD", "Black", 104, WHITE, 2, 960), W // 2, top, anim="rise", dout=0),
         Element(t0 + 0.6, t1, None, W // 2, top + 86, anim="track", din=0.5, dout=0,
                 make=lambda k: text_layer("LIVE IN PHILADELPHIA", "SemiBold", 40, GOLD, k), trk=(30, 12)),
+        Element(t0 + 0.8, t1, text_layer("CELEBRATING YENNAYER 2977", "Bold", 38, WHITE, 6), W // 2, top + 160, anim="rise", dout=0),
         Element(t0 + 1.1, t1, text_layer("JANUARY 10, 2027  ·  6:00 PM", "Bold", 54, WHITE, 1), W // 2, 1362, anim="rise", dout=0),
         Element(t0 + 1.3, t1, text_layer("KESWICK THEATRE  ·  GLENSIDE, PA", "SemiBold", 38, GOLD, 5), W // 2, 1426, anim="rise", dout=0),
         ShimmerPill(t0 + 1.9, t1, "RESERVE YOUR SEATS", 1530, sweeps=sweeps, dout=0),
     ]
 
-def announcement(tl, beats, t_end, dim_amount=0.62):
+def announcement(tl, beats, t_end, dim_amount=0.62, yennayer=True):
     """Progressive event-info build. beats = [t_date, t_year, t_time, t_venue, t_city]"""
     bd, by, bt, bv, bc = beats
     tl.dim(bd - 0.05, t_end, dim_amount, ramp=0.2)
@@ -89,4 +90,8 @@ def announcement(tl, beats, t_end, dim_amount=0.62):
         Element(bv, t_end, fit_text("KESWICK THEATRE", "Black", 104, WHITE, 1, 940), W // 2, 1160, anim="slam", din=0.35, **out),
         Element(bc, t_end, label_layer("GLENSIDE, PA", "Bold", 48, WHITE, RED, padx=30, pady=14, tracking=6), W // 2, 1290, anim="rise", **out),
         Element(bc + 0.2, t_end, text_layer("291 N KESWICK AVE  ·  GLENSIDE, PA 19038", "Medium", 33, WHITE, 3), W // 2, 1378, anim="rise", **out),
+    ]
+    if yennayer: tl.elements += [
+        Element(bc + 0.5, t_end, text_layer("CELEBRATING", "SemiBold", 34, WHITE, 12), W // 2, 1462, anim="rise", **out),
+        Element(bc + 0.7, t_end, text_layer("YENNAYER 2977", "Black", 84, GOLD, 6, glow=0.35), W // 2, 1532, anim="slam", din=0.35, **out),
     ]

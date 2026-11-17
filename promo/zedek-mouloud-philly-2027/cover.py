@@ -17,7 +17,8 @@ def make():
     a *= VIGN
     img = Image.fromarray(np.clip(a, 0, 255).astype(np.uint8)).convert("RGBA")
     def put(layer, cy): img.alpha_composite(layer, (W // 2 - layer.width // 2, int(cy - layer.height / 2)))
-    put(text_layer("LIVE IN CONCERT", "SemiBold", 38, GOLD, 14), 175)
+    put(text_layer("CELEBRATING", "SemiBold", 34, WHITE, 14), 150)
+    put(text_layer("YENNAYER 2977", "Black", 72, GOLD, 6, glow=0.35), 215)
     put(fit_text("ZEDEK", "Black", 200, WHITE, 6, 980), 1170)
     put(fit_text("MOULOUD", "Black", 200, WHITE, 6, 980), 1350)
     put(text_layer("LIVE IN PHILADELPHIA", "SemiBold", 50, GOLD, 12), 1480)
