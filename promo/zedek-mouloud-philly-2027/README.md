@@ -10,7 +10,7 @@ title and sound effect is defined in code.
 | C. Cover 1080×1920 | `cover.py` | `output/Zedek_Mouloud_Philadelphia_Cover.png` |
 
 ## Setup
-Put the source files in `media/` (gitignored) under these names:
+Put the source files in `media/` (gitignored) under these names (music: `music_alluh_alluh_2024.mp3`, the client-supplied "Alluh Alluh" track):
 `clip1_checkered_211029.mp4, clip2_mandole_211136.mp4, clip3_mandole_211242.mp4,
 clip4a/4b/4c_band_211659.mov, philly_drone_212605.mp4, poster_official.jpg`.
 Then: `python3 cover.py && python3 edit_15s.py && python3 edit_40s.py` (add `--stills` for QC frames).
@@ -19,8 +19,7 @@ Then: `python3 cover.py && python3 edit_15s.py && python3 edit_40s.py` (add `--s
 - **Text / event info**: `common.py` → `announcement()` and `end_card()`; titles at the bottom of `build()` in each edit.
 - **Shots**: the `m = [...]` lists, `(source, source_start, focus_x, focus_y, zoom…)`. Focus points (0–1) set the vertical reframing.
 - **Grade / UI crop per source**: `SOURCES` in `engine.py`.
-- **Music**: `build_audio()`. Cuts follow the measured beat grid: clip4c 123 BPM (beat 0.4885 s, downbeat 1.832 s),
-  clip4b (beat 0.485 s, downbeat 13.905 s). The intro and reveal use clip3 audio in lip-sync (offset +15.5 s).
+- **Music**: `build_audio()`. "Alluh Alluh" at exactly 120 BPM (bar = 2 s, downbeats at 1.135 + 2n s). 40 s uses 223.135–263.135 s (breakdown, then full band at 8.0 s); 15 s starts at 231.135 s.
 - Fonts: Inter Display. Palette: navy / gold / white / red accent (`engine.py`).
 
 ## Rights to check before publishing

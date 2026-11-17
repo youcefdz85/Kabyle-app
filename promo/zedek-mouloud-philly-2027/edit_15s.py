@@ -1,11 +1,11 @@
 """DELIVERABLE B - Zedek_Mouloud_Philadelphia_Ad_15s.mp4 (1080x1920, 30 fps, 15 s)
-Music: clip4c band section from its downbeat (src 1.832), 123 BPM; cuts on the beat grid."""
+Music: "Alluh Alluh" (client-supplied) from 231.135 s, 120 BPM; cuts on the beat grid."""
 import sys
 from common import *
 
 DUR = 15.0
-B = lambda k: 0.4885 * k
-OFF = 1.832  # clip4c source = timeline + 1.832 (lip-sync)
+B = lambda k: 0.5 * k          # 120 BPM
+SONG_IN = 231.135  # "Alluh Alluh": full-band drop after the breakdown (downbeat)
 
 def build():
     tl = Timeline(DUR); S = tl.shots.append; E = tl.elements.append
@@ -29,12 +29,12 @@ def build():
 
 def build_audio(path):
     n = int(DUR * SR); mix = np.zeros((n, 2), np.float32)
-    band = load_audio("bandC", OFF, DUR); band *= 10 ** ((-19 - rms_db(band)) / 20)
-    place(mix, fade(band, 0.006, 1.4), 0.0)
-    place(mix, sfx_boom(), 0.0, -10)
+    song = load_audio("song", SONG_IN, DUR); song *= 10 ** ((-16 - rms_db(song)) / 20)
+    place(mix, fade(song, 0.006, 1.4), 0.0)
+    place(mix, sfx_boom(), 0.0, -12)
     place(mix, sfx_whoosh(0.6, rev=True), B(4) - 0.6, -24)
-    place(mix, sfx_boom(seed=3), B(16), -12)
-    place(mix, sfx_boom(seed=5), B(22), -13)
+    place(mix, sfx_boom(seed=3), B(16), -15)
+    place(mix, sfx_boom(seed=5), B(22), -15)
     return master(mix, path)
 
 if __name__ == "__main__":

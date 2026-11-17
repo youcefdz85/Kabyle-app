@@ -52,6 +52,8 @@ SOURCES = {
                    grade="eq=contrast=1.10:saturation=1.05:gamma=0.95,colorbalance=bs=0.05:rs=-0.02"),
 }
 
+SOURCES["song"] = dict(file="music_alluh_alluh_2024.mp3", crop=(0, 0, 2, 2), grade="null")
+
 def src_path(key):
     return os.path.join(MEDIA, SOURCES[key]["file"])
 
