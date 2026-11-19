@@ -17,7 +17,8 @@ SOURCES["song3"] = dict(file="music_yennayer.mp3", crop=(0, 0, 2, 2), grade="nul
 HOOK = (6.62, 12.40)                    # singing, source seconds
 # (take, src_in, src_out): the full message in order; matches verified by alignment
 UNITS = [("exterieur", 0.34, 4.06), ("assise", 4.46, 12.78), ("sur_scene", 14.18, 23.62),
-         ("assise", 21.05, 26.20), ("devant_scene", 29.80, 35.80), ("sur_scene", 34.56, 50.70)]
+         ("assise", 21.05, 26.20), ("devant_scene", 29.80, 35.80), ("sur_scene", 34.56, 50.70),
+         ("assise", 47.62, 58.95)]   # closing words, chosen by the client (only in the "assise" take)
 GAP = 0.12
 OUTDOOR = dict(z0=1.08, z1=1.14, cy=0.55)   # natural framing, marquee visible (client OK with it)
 
@@ -43,9 +44,10 @@ def build():
     tl.fade_in = (0.0, 0.4)
 
     # message
-    for take, a, b, t in units:
+    for i, (take, a, b, t) in enumerate(units):
         kw = dict(OUTDOOR) if take == "exterieur" else dict(cx=0.5, cy=0.45, z0=1.0, z1=1.06)
-        S(Shot(t, t + (b - a) + GAP, "k_" + take, a, **kw))
+        t1 = t + (b - a) + GAP if i < len(units) - 1 else END0 + 0.6   # last shot runs under the card crossfade
+        S(Shot(t, t1, "k_" + take, a, **kw))
     T = {i: u[3] for i, u in enumerate(units)}
     # B-roll cutaways (picture only, her voice continues)
     def broll(t0, d, ss, **kw):
@@ -84,7 +86,15 @@ def build_audio(path, units, END0, DUR):
         active[int(t * SR):int((t + b - a) * SR)] = 1
     # music bed: "Yennayer", very low under the speech, up on the end card
     hook_len = HOOK[1] - HOOK[0]
-    mus = load_audio("song3", 7.937, DUR - hook_len); mus *= 10 ** ((-19 - rms_db(mus)) / 20)
+    # the song is only 49 s: loop its main groove on a 16-bar boundary so the bed never stops
+    BAR = 4 * 0.4839; L0 = 16.164; L1 = L0 + 16 * BAR
+    head = load_audio("song3", 7.937, L1 - 7.937); loop = load_audio("song3", L0, L1 - L0)
+    need = int((DUR - hook_len) * SR); xf = int(0.05 * SR); mus = head.copy()
+    while len(mus) < need:
+        r = np.linspace(0, 1, xf)[:, None]
+        mus[-xf:] = mus[-xf:] * (1 - r) + loop[:xf] * r
+        mus = np.vstack([mus, loop[xf:]])
+    mus = mus[:need]; mus *= 10 ** ((-19 - rms_db(mus)) / 20)
     g = np.full(len(mus), 10 ** (-17 / 20), np.float32)
     e0 = int((END0 - hook_len) * SR); g[e0:] = 1.0
     ramp = int(0.6 * SR); g[e0:e0 + ramp] = np.linspace(10 ** (-17 / 20), 1, ramp)
