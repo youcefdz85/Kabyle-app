@@ -108,13 +108,13 @@ def build_motion():
           W // 2, LT, anim="rise", dout=0.25))
     # 7. why you can't miss it (checklist, top), during the long stage take
     t0 = T[5] + 0.8; t1 = T[5] + 8.0
-    E(Element(t0, t1, panel(900, 470, alpha=200), W // 2, 425, anim="settle", din=0.45, dout=0.3))
-    E(Element(t0 + 0.2, t1, text_layer("WHY YOU CAN'T MISS IT", "Black", 46, GOLD, 4), W // 2, 250, anim="rise", dout=0.3))
+    E(Element(t0, t1, panel(900, 470, alpha=210), W // 2, 1255, anim="settle", din=0.45, dout=0.3))   # lower half: clear of her face
+    E(Element(t0 + 0.2, t1, text_layer("WHY YOU CAN'T MISS IT", "Black", 46, GOLD, 4), W // 2, 1080, anim="rise", dout=0.3))
     items = ["ZEDEK MOULOUD, LIVE", "YENNAYER 2977 CELEBRATION", "ONE NIGHT ONLY IN PHILLY", "A NIGHT FOR THE FAMILY"]
     for k, txt in enumerate(items):
         row = Image.new("RGBA", (800, 70), (0, 0, 0, 0)); row.alpha_composite(check_icon(48), (0, 11))
         tlay = text_layer(txt, "Bold", 40, WHITE, 2, shadow=False); row.alpha_composite(tlay, (66, (70 - tlay.height) // 2))
-        E(Element(t0 + 0.6 + 0.55 * k, t1, row, W // 2 + 30, 345 + 82 * k, anim="rise", din=0.35, dout=0.3))
+        E(Element(t0 + 0.6 + 0.55 * k, t1, row, W // 2 + 30, 1175 + 82 * k, anim="rise", din=0.35, dout=0.3))
     kinetic(E, T[5] + 8.25, T[5] + 10.55, "ONE NIGHT", "ONLY", tl=tl)
     kinetic(E, T[5] + 13.05, T[5] + 15.0, "TICKETS", "ON SALE NOW", tl=tl)
     # 8. the call to action, under the client's closing words
