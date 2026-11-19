@@ -84,30 +84,19 @@ def build_motion():
     LT = 1400   # lower-third anchor (above the social-app UI zone)
     # persistent campaign chip, top
     E(Element(T[0] + 0.3, END0 - 0.1, chip("JAN 10 · KESWICK THEATRE"), W // 2, 128, anim="fade", din=0.5, dout=0.3))
-    # 1. the venue
-    E(Element(T[0] + 0.4, T[0] + dur[0] - 0.05, card([("THE VENUE", "Bold", 28, GOLD, 10),
+    # --- outdoor stretch (U0, ~24 s): venue -> date -> family -> why come
+    E(Element(T[0] + 0.4, T[0] + 6.0, card([("THE VENUE", "Bold", 28, GOLD, 10),
           ("KESWICK THEATRE", "Black", 68, WHITE, 2), ("GLENSIDE, PA · GREATER PHILADELPHIA", "SemiBold", 30, WHITE, 3)],
           icon=pin_icon(1.0)), W // 2, LT, anim="rise", din=0.45, dout=0.25))
-    # 2. seats B-roll: the promise
-    kinetic(E, T[1] + 3.25, T[1] + 5.35, "A HISTORIC STAGE", "A LEGENDARY VOICE", tl=tl)
-    # 3. the date
     cal = calendar_tile(); cal = cal.resize((int(cal.width * 0.62), int(cal.height * 0.62)), Image.LANCZOS)
-    E(Element(T[2] + 0.6, T[2] + 4.0, cal, 830, 420, anim="slam", din=0.4, dout=0.3))   # top-right, clear of her face
-    E(Element(T[2] + 0.9, T[2] + 4.0, card([("SAVE THE DATE", "Bold", 28, GOLD, 10),
+    E(Element(T[0] + 7.0, T[0] + 11.0, cal, 830, 420, anim="slam", din=0.4, dout=0.3))   # top-right, clear of her face
+    E(Element(T[0] + 7.3, T[0] + 11.0, card([("SAVE THE DATE", "Bold", 28, GOLD, 10),
           ("SUNDAY, JANUARY 10, 2027", "Black", 56, WHITE, 1), ("SHOW AT 6:00 PM", "SemiBold", 32, WHITE, 4)]),
           W // 2, LT, anim="rise", dout=0.25))
-    # 4. stage B-roll
-    kinetic(E, T[2] + 4.25, T[2] + 6.55, "THE LEGEND", "ON THIS STAGE", tl=tl)
-    # 5. family
-    E(Element(T[3] + 0.5, T[3] + dur[3] - 0.1, card([("FOR EVERYONE", "Bold", 28, GOLD, 10),
+    E(Element(T[0] + 12.0, T[0] + 17.0, card([("FOR EVERYONE", "Bold", 28, GOLD, 10),
           ("BRING THE WHOLE FAMILY", "Black", 56, WHITE, 1), ("ONE NIGHT TOGETHER, ONE COMMUNITY", "SemiBold", 30, WHITE, 3)]),
           W // 2, LT, anim="rise", dout=0.25))
-    # 6. Yennayer
-    E(Element(T[4] + 0.4, T[4] + dur[4] - 0.1, card([("AMAZIGH NEW YEAR", "Bold", 28, GOLD, 10),
-          ("CELEBRATE YENNAYER 2977", "Black", 56, GOLD, 1), ("WITH ZEDEK MOULOUD, LIVE", "SemiBold", 32, WHITE, 3)]),
-          W // 2, LT, anim="rise", dout=0.25))
-    # 7. why you can't miss it (checklist, top), during the long stage take
-    t0 = T[5] + 0.8; t1 = T[5] + 8.0
+    t0 = T[0] + 18.0; t1 = T[0] + dur[0] - 0.1
     E(Element(t0, t1, panel(900, 470, alpha=210), W // 2, 1255, anim="settle", din=0.45, dout=0.3))   # lower half: clear of her face
     E(Element(t0 + 0.2, t1, text_layer("WHY YOU CAN'T MISS IT", "Black", 46, GOLD, 4), W // 2, 1080, anim="rise", dout=0.3))
     items = ["ZEDEK MOULOUD, LIVE", "YENNAYER 2977 CELEBRATION", "ONE NIGHT ONLY IN PHILLY", "A NIGHT FOR THE FAMILY"]
@@ -115,10 +104,16 @@ def build_motion():
         row = Image.new("RGBA", (800, 70), (0, 0, 0, 0)); row.alpha_composite(check_icon(48), (0, 11))
         tlay = text_layer(txt, "Bold", 40, WHITE, 2, shadow=False); row.alpha_composite(tlay, (66, (70 - tlay.height) // 2))
         E(Element(t0 + 0.6 + 0.55 * k, t1, row, W // 2 + 30, 1175 + 82 * k, anim="rise", din=0.35, dout=0.3))
-    kinetic(E, T[5] + 8.25, T[5] + 10.55, "ONE NIGHT", "ONLY", tl=tl)
-    kinetic(E, T[5] + 13.05, T[5] + 15.0, "TICKETS", "ON SALE NOW", tl=tl)
-    # 8. the call to action, under the client's closing words
-    E(Element(T[6] + 0.5, T[6] + dur[6] - 0.05, card([("GET YOUR TICKETS", "Bold", 28, GOLD, 10),
+    # --- seated (U1): stage B-roll
+    kinetic(E, T[1] + 1.65, T[1] + 3.75, "A HISTORIC STAGE", "A LEGENDARY VOICE", tl=tl)
+    # --- in front of the stage (U2): Yennayer
+    E(Element(T[2] + 0.4, T[2] + dur[2] - 0.1, card([("AMAZIGH NEW YEAR", "Bold", 28, GOLD, 10),
+          ("CELEBRATE YENNAYER 2977", "Black", 56, GOLD, 1), ("WITH ZEDEK MOULOUD, LIVE", "SemiBold", 32, WHITE, 3)]),
+          W // 2, LT, anim="rise", dout=0.25))
+    # --- closing words (U3)
+    kinetic(E, T[3] + 3.05, T[3] + 5.15, "ONE NIGHT", "ONLY", tl=tl)
+    kinetic(E, T[3] + 7.05, T[3] + 8.75, "TICKETS", "ON SALE NOW", tl=tl)
+    E(Element(T[3] + 9.0, T[3] + dur[3] + 0.1, card([("GET YOUR TICKETS", "Bold", 28, GOLD, 10),
           ("TICKETS ON " + AXS, "Black", 60, WHITE, 2), ("LINK IN BIO · ZEDEK MOULOUD · JAN 10", "SemiBold", 28, WHITE, 3)]),
           W // 2, LT, anim="rise", dout=0.25))
     return tl, units, END0, DUR
