@@ -1,7 +1,7 @@
 """Reel "On était au Keswick Theatre": the client's Kabyle invitation filmed in 5 locations of the venue.
 Phrases are cut between takes only where an MFCC/DTW alignment confirmed the same words (lip-sync kept:
 each phrase uses its own take's picture AND sound). Other passages stay on the "sur scène" take with
-B-roll cutaways. Outdoor shots are zoomed so the marquee of another show is never legible.
+B-roll cutaways.
 Usage: python3 edit_keswick_reel.py [--stills]"""
 import sys
 from common import *
@@ -19,7 +19,7 @@ HOOK = (6.62, 12.40)                    # singing, source seconds
 UNITS = [("exterieur", 0.34, 4.06), ("assise", 4.46, 12.78), ("sur_scene", 14.18, 23.62),
          ("assise", 21.05, 26.20), ("devant_scene", 29.80, 35.80), ("sur_scene", 34.56, 50.70)]
 GAP = 0.12
-OUTDOOR = dict(z0=1.36, z1=1.42, cy=0.64)   # punch-in that keeps the marquee text out of frame
+OUTDOOR = dict(z0=1.08, z1=1.14, cy=0.55)   # natural framing, marquee visible (client OK with it)
 
 def layout():
     t = HOOK[1] - HOOK[0] + 0.22
@@ -35,14 +35,8 @@ def build():
     tl = Timeline(DUR); S = tl.shots.append; E = tl.elements.append
     hook_len = HOOK[1] - HOOK[0]
     # hook: facade wide while the singing starts (J-cut), then her, once the camera move is over
-    S(Shot(0.0, 3.4, "k_brolls", 8.2, cx=0.5, cy=0.42, z0=1.04, z1=1.16))       # facade, marquee too far to read
-    S(Shot(3.4, hook_len + 0.22, "k_chante", HOOK[0] + 3.4, cx=0.5, z0=1.30, z1=1.34, cy=0.60))
-    # solid navy header band while outdoors: the other show's marquee is fully hidden behind it
-    BAND = 520
-    a = np.concatenate([np.full(BAND - 70, 255), np.linspace(255, 0, 70)]).astype(np.uint8)
-    band = Image.new("RGBA", (W, BAND), (8, 12, 30, 255)); band.putalpha(Image.fromarray(np.repeat(a[:, None], W, 1)))
-    ImageDraw.Draw(band).rectangle((W // 2 - 160, BAND - 92, W // 2 + 160, BAND - 89), fill=GOLD + (255,))
-    E(Element(3.3, hook_len + 0.22, band, W // 2, BAND // 2, anim="fade", din=0.15, dout=0.15))
+    S(Shot(0.0, 1.6, "k_brolls", 8.2, cx=0.5, cy=0.42, z0=1.04, z1=1.12))       # facade, marquee too far to read
+    S(Shot(1.6, hook_len + 0.22, "k_chante", HOOK[0] + 1.6, cx=0.5, z0=1.12, z1=1.18, cy=0.58))
     E(Element(0.5, hook_len + 0.1, None, W // 2, 230, anim="track", din=0.5, dout=0.25,
               make=lambda k: text_layer("ZEDEK MOULOUD", "Black", 88, WHITE, k), trk=(24, 4)))
     E(Element(0.8, hook_len + 0.1, text_layer("LIVE IN PHILADELPHIA", "SemiBold", 40, GOLD, 12), W // 2, 320, anim="rise", dout=0.25))
