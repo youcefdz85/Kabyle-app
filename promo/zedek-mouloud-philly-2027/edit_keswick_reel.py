@@ -14,12 +14,12 @@ for n, g in [("chante", SUN), ("exterieur", SUN), ("assise", WARM), ("sur_scene"
     SOURCES["k_" + n] = dict(file=K + n + ".mp4", crop=CROP, grade=g)
 SOURCES["song3"] = dict(file="music_yennayer.mp3", crop=(0, 0, 2, 2), grade="null")
 
-HOOK = (3.10, 19.30)                    # singing, source seconds: the whole song she sang outside
+HOOK = (2.85, 19.40)                    # singing, source seconds: the whole song she sang outside
 # (take, src_in, src_out): the full message in order; matches verified by alignment
-UNITS = [("exterieur", 0.34, 24.83),    # client's favourite: one continuous outdoor stretch (ends on a pause)
-         ("assise", 21.05, 26.20), ("devant_scene", 29.80, 35.80),
-         ("assise", 47.62, 58.95)]   # closing words, chosen by the client. Stage ("sur_scene") removed at her request
-OUT_SPLIT = 17.9                       # outdoor: punch-in at the 1.4 s pause (src 17.23-18.61)
+UNITS = [("exterieur", 0.34, 13.22),    # outdoor phrases 1+2 (both end on real pauses; phrase 2 replaces the seated one)
+         ("sur_scene", 14.18, 23.62), ("assise", 21.05, 26.20), ("devant_scene", 29.80, 35.80),
+         ("sur_scene", 34.56, 50.70), ("assise", 47.62, 58.95)]   # same structure as v3; stage shortened with B-roll cutaways
+OUT_SPLIT = 8.1                        # outdoor: closer framing at the short pause (src 8.03-8.16)
 GAP = 0.12
 OUTDOOR = dict(z0=1.08, z1=1.14, cy=0.55)   # natural framing, marquee visible (client OK with it)
 
@@ -58,18 +58,23 @@ def build():
     # B-roll cutaways (picture only, her voice continues)
     def broll(t0, d, ss, **kw):
         S(Shot(t0, t0 + d, "k_brolls", ss, over=True, **({"cx": 0.5, "cy": 0.5, "z0": 1.02, "z1": 1.10} | kw)))
-    broll(T[1] + 1.6, 2.2, 16.8)          # stage seen from the seats (empty stage)
-    broll(T[2] + 2.6, 2.0, 38.8)          # box office
-    broll(T[3] + 3.0, 2.2, 23.3)          # red seats from the stage
-    broll(T[3] + 7.0, 1.8, 44.4)          # "Keswick Theatre Box Office" sign
+    # stage passages: her voice continues, the picture cuts away to the venue (less time on the stage)
+    broll(T[1] + 3.6, 2.2, 16.8)          # stage seen from the seats
+    broll(T[1] + 6.6, 2.4, 23.3)          # red seats from the stage
+    broll(T[3] + 2.6, 2.0, 38.8)          # box office
+    broll(T[4] + 2.0, 2.4, 12.6)          # auditorium
+    broll(T[4] + 5.2, 2.2, 33.5)          # seats
+    broll(T[4] + 8.2, 2.2, 28.6)          # stage floor and seats
+    broll(T[4] + 11.0, 1.8, 36.2)         # stage seen from the seats
+    broll(T[4] + 13.6, 2.0, 44.4)         # "Keswick Theatre Box Office" sign
     tl.leak(T[0], dur=0.7, strength=0.45, seed=41)
     # info lower-thirds (the speech is in Kabyle: key facts on screen for every viewer)
     def info(t0, d, text, size=52, color=WHITE):
         E(Element(t0, t0 + d, label_layer(text, "Bold", size, color, NAVY, padx=34, pady=18, tracking=3), W // 2, 1440, anim="rise", dout=0.3))
     info(T[0] + 0.4, 3.0, "KESWICK THEATRE · GLENSIDE, PA")
-    info(T[0] + 9.0, 3.6, "SUNDAY · JANUARY 10, 2027 · 6:00 PM")
-    info(T[0] + 19.0, 3.6, "ZEDEK MOULOUD · LIVE IN CONCERT")
-    info(T[2] + 0.6, 3.6, "CELEBRATING YENNAYER 2977", color=GOLD)
+    info(T[1] + 0.4, 3.0, "SUNDAY · JANUARY 10, 2027 · 6:00 PM")
+    info(T[3] + 0.6, 3.6, "CELEBRATING YENNAYER 2977", color=GOLD)
+    info(T[4] + 6.0, 3.6, "ZEDEK MOULOUD · LIVE IN CONCERT")
     info(t_end_speech - 4.2, 4.0, "TICKETS ON AXS.COM", color=GOLD)
     end_card(tl, END0, DUR, sweeps=(END0 + 3.0,), cta="TICKETS ON AXS.COM")
     tl.fade_out = (DUR - 0.5, DUR)
