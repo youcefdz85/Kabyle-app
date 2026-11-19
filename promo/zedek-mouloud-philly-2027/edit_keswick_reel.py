@@ -58,15 +58,17 @@ def build():
     # B-roll cutaways (picture only, her voice continues)
     def broll(t0, d, ss, **kw):
         S(Shot(t0, t0 + d, "k_brolls", ss, over=True, **({"cx": 0.5, "cy": 0.5, "z0": 1.02, "z1": 1.10} | kw)))
-    # stage passages: her voice continues, the picture cuts away to the venue (less time on the stage)
-    broll(T[1] + 3.6, 2.2, 16.8)          # stage seen from the seats
-    broll(T[1] + 6.6, 2.4, 23.3)          # red seats from the stage
+    # stage passages: the client doesn't want to be seen on the stage -> her voice continues,
+    # the picture is fully covered by venue B-roll (distinct source ranges, never reused)
+    def cover(k, plan):
+        t0 = T[k]; end = T[k] + (units[k][2] - units[k][1]) + GAP
+        for n, (ss, d) in enumerate(plan):
+            t1 = end if n == len(plan) - 1 else t0 + d
+            broll(t0, t1 - t0, ss); t0 = t1
+    cover(1, [(16.8, 2.6), (23.3, 2.6), (4.8, 2.4), (12.4, 2.0)])           # stage, seats, facade, auditorium
     broll(T[3] + 2.6, 2.0, 38.8)          # box office
-    broll(T[4] + 2.0, 2.4, 12.6)          # auditorium
-    broll(T[4] + 5.2, 2.2, 33.5)          # seats
-    broll(T[4] + 8.2, 2.2, 28.6)          # stage floor and seats
-    broll(T[4] + 11.0, 1.8, 36.2)         # stage seen from the seats
-    broll(T[4] + 13.6, 2.0, 44.4)         # "Keswick Theatre Box Office" sign
+    cover(4, [(19.6, 2.4), (25.9, 2.0), (28.4, 2.6), (33.4, 2.3), (1.7, 2.4), (14.5, 1.8), (44.2, 2.8)])
+    # stage, seats, stage floor, seats, marquee, auditorium, "Box Office" sign (under "TICKETS ON SALE NOW")
     tl.leak(T[0], dur=0.7, strength=0.45, seed=41)
     # info lower-thirds (the speech is in Kabyle: key facts on screen for every viewer)
     def info(t0, d, text, size=52, color=WHITE):
