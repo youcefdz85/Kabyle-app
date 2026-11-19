@@ -61,7 +61,7 @@ class ShimmerPill(Element):
         self.layer = layer
         super().draw(canvas, t)
 
-def end_card(tl, t0, t1, top=212, sweeps=()):
+def end_card(tl, t0, t1, top=212, sweeps=(), cta="RESERVE YOUR SEATS"):
     """Final poster reveal with title, details and call to action."""
     tl.cards.append((t0, t1, lambda t: card_background()))
     tl.elements += [
@@ -72,7 +72,7 @@ def end_card(tl, t0, t1, top=212, sweeps=()):
         Element(t0 + 0.8, t1, text_layer("CELEBRATING YENNAYER 2977", "Bold", 38, WHITE, 6), W // 2, top + 160, anim="rise", dout=0),
         Element(t0 + 1.1, t1, text_layer("JANUARY 10, 2027  ·  6:00 PM", "Bold", 54, WHITE, 1), W // 2, 1362, anim="rise", dout=0),
         Element(t0 + 1.3, t1, text_layer("KESWICK THEATRE  ·  GLENSIDE, PA", "SemiBold", 38, GOLD, 5), W // 2, 1426, anim="rise", dout=0),
-        ShimmerPill(t0 + 1.9, t1, "RESERVE YOUR SEATS", 1530, sweeps=sweeps, dout=0),
+        ShimmerPill(t0 + 1.9, t1, cta, 1530, sweeps=sweeps, dout=0),
     ]
 
 def announcement(tl, beats, t_end, dim_amount=0.62, yennayer=True):

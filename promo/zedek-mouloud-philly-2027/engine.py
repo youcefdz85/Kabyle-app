@@ -83,11 +83,12 @@ class Shot:
     z0->z1: zoom (1 = full-height 9:16 crop). pan: optional (cx1,cy1) end focus.
     punch: (dur, amount) impact zoom-in at start with motion blur. dark: darken amount (0..1)."""
     def __init__(self, t0, t1, src, ss, cx=0.5, cy=0.5, z0=1.0, z1=1.06, pan=None,
-                 punch=None, dark=0.0, fade_in=0.0, speed=1.0):
+                 punch=None, dark=0.0, fade_in=0.0, speed=1.0, over=False):
         self.t0, self.t1, self.src, self.ss = t0, t1, src, ss
         self.cx, self.cy, self.z0, self.z1 = cx, cy, z0, z1
         self.pan = pan; self.punch = punch; self.dark = dark; self.fade_in = fade_in
         self.speed = speed
+        self.over = over          # cutaway: hides the shots underneath (their readers keep advancing)
         self.proc = None; self.n = 0; self.last = None
         c = SOURCES[src]["crop"]; self.sw, self.sh = c[2] - c[0], c[3] - c[1]
 
@@ -292,6 +293,11 @@ class Timeline:
     def frame(self, i):
         t = i / FPS
         active = [s for s in self.shots if s.t0 <= t < s.t1]
+        tops = [s for s in active if s.over]
+        if tops:
+            for s in active:
+                if s is not tops[-1]: s.next_frame()
+            active = [tops[-1]]
         card = [c for c in self.cards if c[0] <= t < c[1]]
         if card:
             base = np.asarray(card[0][2](t), np.float32).copy()
