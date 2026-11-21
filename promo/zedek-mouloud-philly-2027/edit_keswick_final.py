@@ -6,13 +6,13 @@ import sys
 from edit_keswick_motion import *
 
 SOURCES["k_final"] = dict(file=K + "client_edit_v3.mp4", crop=CROP, grade="null")
-EDIT_END = 73.35
+EDIT_END = 72.86             # her edit ends on 0.55 s of black after this: the poster card takes over here
 SONG_END = 15.80
 VOICE_END = 72.65
 LT = 1400
 # her cuts (scene detection) -> one shot per segment, each with a gentle push-in
 CUTS = [0.0, 20.44, 23.44, 28.03, 31.07, 33.83, 36.45, 40.0, 41.62, 44.92, 48.30, 51.05, 54.43, 56.26,
-        60.19, 63.06, 66.98, 72.86, EDIT_END]
+        60.19, 63.06, 66.98, EDIT_END]
 BROLL = {20.44, 23.44, 28.03, 31.07, 36.45, 40.0, 44.92, 48.30, 51.05, 54.43, 56.26, 60.19, 63.06}
 
 def build_final():
