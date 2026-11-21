@@ -19,9 +19,10 @@ def build_final():
     END0 = EDIT_END; DUR = END0 + 6.0
     tl = Timeline(DUR); S = tl.shots.append; E = tl.elements.append
     for a, b in zip(CUTS[:-1], CUTS[1:]):
-        b2 = b if b < EDIT_END else END0 + 0.6
-        S(Shot(a, b2, "k_final", a, cx=0.5, cy=0.5, z0=1.0, z1=1.05 if a in BROLL else 1.03,
+        S(Shot(a, b, "k_final", a, cx=0.5, cy=0.5, z0=1.0, z1=1.05 if a in BROLL else 1.03,
                punch=(0.32, 0.07) if a in BROLL else None))
+    # hold her last frame under the card crossfade (her source turns black right after EDIT_END)
+    S(Shot(END0, END0 + 0.6, "k_final", END0 - 0.06, cx=0.5, cy=0.5, z0=1.03, z1=1.03, speed=0.05))
     tl.fade_in = (0.0, 0.4)
     # transition accents on her cuts
     for t in (20.44, 33.83, 41.62, 54.43, 66.98): tl.leak(t, dur=0.7, strength=0.45, seed=int(t))
