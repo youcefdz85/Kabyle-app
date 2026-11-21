@@ -39,7 +39,7 @@ WHITE = (248, 246, 240)
 RED = (190, 30, 45)
 INK = (8, 12, 26)
 
-FONT_DIR = "/usr/share/fonts/opentype/inter"
+FONT_DIR = os.environ.get("FONT_DIR", "/usr/share/fonts/opentype/inter")   # Inter Display .otf files; set FONT_DIR on Windows
 def font(weight, size):
     return ImageFont.truetype(os.path.join(FONT_DIR, f"InterDisplay-{weight}.otf"), size)
 
